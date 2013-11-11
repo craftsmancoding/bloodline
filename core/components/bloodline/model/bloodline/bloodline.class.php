@@ -19,6 +19,12 @@
  * Place, Suite 330, Boston, MA 02111-1307 USA
  *
  * @package bloodline
+ 
+ 
+ Overall goal of this is to fill the $report array with info and errors.
+ 
+ Array
+ 
  */
 
 
@@ -27,7 +33,8 @@ class Bloodline {
     public $modx;
     public $props;
     public $controllers = array(); // Reverse Action Map
-    public $errors = array();
+
+    public $report = array('info'=>array(),'errors'=>array());
     
     
     function __construct(&$modx, &$config = array()){
@@ -39,40 +46,83 @@ class Bloodline {
     /**
      * Get the absolute manager url for editing an item.
      *
-     * @param string $action (controller by name, not by id)
+     * @param string $type template,resource, snippet etc. corresponding to the type of thing
      * @param integer $id of the object in question
      * @return string absolute URL for manager editing, e.g. 
      */
-    function get_mgr_url($action, $id) {
-        // Most common manage links:
-        
-        // element/template/update
-        // element/snippet/update
-        // element/chunk/update
-        // element/tv/update
-        // resource/update
+    function get_mgr_url($type, $id) {
+
+        switch ($type) {
+            case 'template':
+                $action = 'element/template/update';
+                break;
+            case 'snippet':
+                $action = 'element/snippet/update';
+                break;
+            case 'chunk':
+                $action = 'element/chunk/update';
+                break;
+            case 'tv':
+                $action = 'element/tv/update';
+                break;
+            case 'resource':
+                $action = 'resource/update';
+                break;
+            case 'context':
+                $action = 'context/update';
+        }
         
         $id = (int) $id;
-        $a = $this->getOption($action, $this->controllers);
+        $a = $this->modx->getOption($action, $this->controllers);
         if (!$a) {
-            $this->log(xPDO::LOG_LEVEL_ERROR,'Bloodline: unknown controller/action: '.$action);
+            $this->modx->log(xPDO::LOG_LEVEL_ERROR,'Bloodline: unknown controller/action for type '.$type);
             return '';
         }
         return MODX_MANAGER_URL ."index.php?a={$a['id']}&id={$id}";
     }
     
     /**
-     * 
+     * Each error message should have a message (the obvious bit), 
+     * and an optional URL (usually in the mgr) where the user can click to resolve/troubleshoot
      *
+     * This gets added onto the $report error stack.
      *
-     *
+     * @param string $msg
+     * @param string $url
      * @return void
      */
-    public function error($msg) {
-
-        $this->errors[] = array(
-            'msg' => $msg
+    public function error($msg,$url='') {
+        $this->report['errors'][] = array(
+            'msg' => $msg,
+            'url' => $url
         );
+    }
+    
+    public function get_report($content_type='text/html') {
+        $report = json_encode($this->report);
+        switch ($content_type) {
+            default:
+                return '<script type="text/javascript">
+                    var Bloodline = '.$report.';
+                </script>';
+        }
+    }
+    
+    /**
+     * Each info message should have a message (the obvious bit), 
+     * and an optional URL (usually in the mgr) where the user can click to edit
+     *
+     * This gets added onto the $report stack.
+     *
+     * @param string $msg
+     * @param string $url
+     * @return void
+     */
+    public function info($msg,$url='') {
+        $this->report['info'][] = array(
+            'msg' => $msg,
+            'url' => $url
+        );    
     }
 
     /**
@@ -112,6 +162,7 @@ class Bloodline {
         
         if (empty($map) || !is_array($map)) {
             $this->log(xPDO::LOG_LEVEL_ERROR,'Bloodline: unable to load MODX action map.');
+            $this->error('Unable to load MODX action map.');
             return false; // fail!
         }
         
@@ -121,6 +172,22 @@ class Bloodline {
         return $rmap;
     }
         
+    /**
+     * Markup a given string $str with Bloodline markers.
+     * String must be verified, otherwise, our regexes will fail.
+     * The challenge is always nested tags, e.g. [[~[[*id]]]] 
+     * So when we find a tag start '[[', we must traverse through the string until we 
+     * find its relevant closing tag.
+     */
+    public function markup($str) {
+        // Gotta strip out those nasty "space-like" characters.
+		$str = str_replace(array("\r","\r\n","\n","\t",chr(202),chr(173),chr(0xC2),chr(0xA0) ), ' ', $str);
+        
+        //Chunks
+        
+        return $str;
+    }
+    
 	/**
 	 * Basic integrity check: look for mismatched square-brackets.  if ($backticks & 1)... odd number.
 	 *
@@ -140,12 +207,12 @@ class Bloodline {
 		$backticks		= substr_count($content, '`');
 		
 		if ($left_brackets != $right_brackets) {
-			$this->errors[] = "Mismatched brackets in $field ($type:$id)";
+			$this->error("Mismatched brackets in $type $field",$this->get_mgr_url($type,$id));
 			$out = false;
 		}
 		
 		if($backticks&1) {
-			$this->errors[] = "Mismatched backticks in $field ($type:$id)";
+			$this->error("Mismatched backticks in $type $field",$this->get_mgr_url($type,$id));
 			$out = false;
 		}
 		return $out;

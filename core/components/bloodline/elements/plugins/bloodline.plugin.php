@@ -40,30 +40,50 @@
 
 
 if ($modx->event->name == 'OnLoadWebDocument') {
-        $cacheKey= 'mgr/actions';
-        $map = $modx->cacheManager->get($cacheKey, array(
-            xPDO::OPT_CACHE_KEY => $modx->getOption('cache_action_map_key', null, 'action_map'),
-            xPDO::OPT_CACHE_HANDLER => $modx->getOption('cache_action_map_handler', null, $modx->getOption(xPDO::OPT_CACHE_HANDLER)),
-            xPDO::OPT_CACHE_FORMAT => (integer) $modx->getOption('cache_action_map_format', null, $modx->getOption(xPDO::OPT_CACHE_FORMAT, null, xPDOCacheManager::CACHE_PHP)),
-        ));
-        print_r($map); exit;
-    // Overrides for dev work
+    if (!isset($_GET[$modx->getOption('bloodline.url_param')])) {
+        return;
+    }
+
+    // Override for dev work
     $core_path = $modx->getOption('bloodline.core_path','', MODX_CORE_PATH);
     require_once($core_path.'components/bloodline/model/bloodline/bloodline.class.php');
     
     $Bloodline = new Bloodline($modx);
     
+    // This is necessary so our markup shows.
     $modx->resource->set('cacheable',false);
     
-    // Check Resouce Content...
+    
     
     // Some resources may not have a template set...
     if ($modx->resource->Template) {
-        $Bloodline->verify('modTemplate','content',$modx->resource->Template);
+        $Bloodline->info('Context '.$modx->context->get('key'). '('.$modx->context->get('id').')'
+            ,$Bloodline->get_mgr_url('context', $modx->context->get('id')));
+        $Bloodline->info('Template '.$modx->resource->Template->get('name'). '('.$modx->resource->Template->get('id').')'
+            ,$Bloodline->get_mgr_url('template', $modx->resource->Template->get('id')));
+        $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). '('.$modx->resource->get('id').')'
+            ,$Bloodline->get_mgr_url('template', $modx->resource->Template->get('id')));
+            
+        if($Bloodline->verify('template','content',$modx->resource->Template)) {
+            $content = $Bloodline->markup($modx->resource->Template->get('content'));
+            $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
+            $modx->resource->Template->set('content',$content);
+        }
         //$template_content = $Bloodline->verify('modT$modx->resource->Template->get('content'));
         //$template_content = 'BARRRF';
         //$modx->resource->Template->set('content',$template_content);
     }
+    // No template: resource only.
+    else {
+        $Bloodline->info('Context '.$modx->context->get('key'). '('.$modx->context->get('id').')'
+            ,$Bloodline->get_mgr_url('context', $modx->context->get('id')));
+        $Bloodline->info('No Template');
+        $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). '('.$modx->resource->get('id').')'
+            ,$Bloodline->get_mgr_url('template', $modx->resource->Template->get('id')));
+        //$out = $modx->resource->process();   
+        //$modx->resource->_content = $out;
+    }
+    
     
     
     
