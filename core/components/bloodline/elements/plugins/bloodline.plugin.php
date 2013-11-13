@@ -47,12 +47,16 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     // Override path for dev work
     $core_path = $modx->getOption('bloodline.core_path','', MODX_CORE_PATH);
     require_once($core_path.'components/bloodline/model/bloodline/bloodline.class.php');
-    
-    $Bloodline = new Bloodline($modx);
-    
+
     // If a specific element is defined, we override everything
+    $config = array();
     $id = $modx->getOption('id',$_GET);
     $type = $modx->getOption('type',$_GET);
+    $config['markup'] = $modx->getOption('markup',$_GET,array());
+    $config['format'] = $modx->getOption('format',$_GET,'both'); // js|html|both
+    
+    $Bloodline = new Bloodline($modx,$config);
+    
     
 /*
     // TODO: drill down
@@ -68,8 +72,7 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     $modx->resource->set('cacheable',false);
     
     
-    
-    // Some resources may not have a template set...
+    // Most resources have a template set...
     if ($modx->resource->Template) {
         $Bloodline->info('Context '.$modx->context->get('key'). '('.$modx->context->get('id').')'
             ,$Bloodline->get_mgr_url('context', $modx->context->get('id')));
@@ -77,11 +80,17 @@ if ($modx->event->name == 'OnLoadWebDocument') {
             ,$Bloodline->get_mgr_url('template', $modx->resource->Template->get('id')));
         $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). '('.$modx->resource->get('id').')'
             ,$Bloodline->get_mgr_url('resource', $modx->resource->Template->get('id')));
+        
+        if($Bloodline->verify('resource','content',$modx->resource)) {
+            $modx->resource->set('content', $Bloodline->markup($modx->resource->get('content')));
+        }
             
         if($Bloodline->verify('template','content',$modx->resource->Template)) {
             $content = $Bloodline->markup($modx->resource->Template->get('content'));
             $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
+            //$content = $content . "\n".'<pre>'.print_r($Bloodline->report,true).'</pre>';
             $modx->resource->Template->set('content',$content);
+
         }
         //$template_content = $Bloodline->verify('modT$modx->resource->Template->get('content'));
         //$template_content = 'BARRRF';

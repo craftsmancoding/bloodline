@@ -41,14 +41,39 @@ class Bloodline {
         'tags'=> array() // raw MODX tags (1st layer of nesting only)
         
     );
+    // Bloodline will insert markup for the these types of tags (see get_tag_info)
+    // Options: comment, lexicon, chunk, snippet, link, docvar, tv, placeholder, setting
+    public $markup_tags = array(
+        'chunk','snippet','docvar'
+    );
+    
+	// What [[*docvars]] are available by default?
+	public $resource_fields = array(
+    	'id','type','contentType','pagetitle','longtitle','description','alias','link_attributes',
+    	'published','pub_date','unpub_date','parent','isfolder','introtext','content','richtext',
+    	'template','menuindex','searchable','cacheable','createdby','createdon','editedby','editedon',
+    	'deleted','deletedon','deletedby','publishedon','publishedby','menutitle','donthit',
+    	'content_dispo','hidemenu','context_key','content_type','uri_override','hide_children_in_tree',
+    	'show_in_tree','articles_container_settings','articles_container'
+	);    
     
     
+    /**
+     *
+     * @param object modx
+     * @param array
+     */
     function __construct(&$modx, &$config = array()){
         $this->modx =& $modx;
         $this->props =& $config;
         $this->controllers = $this->loadActionMap(); // reverse action map
     }
 
+    /**
+     * Take Bloodline report data and convert it to a nicely formatted HTML report
+     * http://www.istockphoto.com/stock-illustration-19742371-oak-tree-silhouette-with-roots.php
+     * @return string
+     */
     private function _to_html() {
         $out = '';
         foreach ($this->report['info'] as $i) {
@@ -63,6 +88,11 @@ class Bloodline {
         return '<div id="bloodline"><h2>Bloodline</h2><h3>Page Info</h3>'.$out.'</div>';
     }
     
+    /** 
+     * Take Bloodline report data and convert it to Javascript
+     *
+     * @return string (valid JS)
+     */
     private function _to_js(){
         return 'var Bloodline = '.json_encode($this->report).';
         console.group("Page Info");
@@ -80,7 +110,16 @@ class Bloodline {
         for(var i=0;i<Bloodline.errors.length;i++){
             var obj = Bloodline.errors[i];
             console.error(obj.msg + " " + obj.url);
-        }';
+        }
+        
+        console.group("All Tags");
+        for(var i=0;i<Bloodline.errors.length;i++){
+            var obj = Bloodline.errors[i];
+            console.error(obj.msg + " " + obj.url);
+        }
+        console.groupEnd();
+        ';
+
     }
 	//------------------------------------------------------------------------------
 	/**
@@ -89,27 +128,44 @@ class Bloodline {
 	 * Sets error messages if there are problems.
 	 *
 	 * @param	string	$str 
+	 * @return  int $id of chunk
 	 */
 	private function _validate_chunk($str) {
 		$chunk = $this->modx->getObject('modChunk', array('name'=>$str));
 		if (!$chunk) {			
 			$this->error('Chunk does not exist '.$str);
 		}
+		return $chunk->get('id');
 	}
 
 	//------------------------------------------------------------------------------
 	/**
-	 * Check the parameters to see if they are correct.  Params and TVs...
-	 * the problem here is that the [[*docvar]] instances could appear 
-	 * ANYWHERE (e.g. in a Chunk), so we have to adjust the checking depending
-	 * on where it appears.
+	 * Not sure how to check a docvar in isolation
 	 *
 	 * Sets error messages if there are problems.
 	 *
 	 * @param	string	$str 
 	 */
-	private function _validate_docvar($str) {
-	
+	private function _validate_tv($str) {
+
+       $page_id = $this->modx->resource->get('id');
+   
+        // Does this TV exist at all?
+        $TV = $this->modx->getObject('modTemplateVar', array('name'=>$str));
+		if (!$TV) {
+			$this->error('Template variable [[*'.$str.']] does not exist.');
+			return '';
+		}
+		
+		// Is this TV assigned to this Template?
+		$TVT = $this->modx->getObject('modTemplateVarTemplate'
+			, array('templateid'=>$this->modx->resource->get('template'), 'tmplvarid'=> $TV->get('id') ));
+		if (!$TVT) {
+			$this->warn('TV not assigned to current template: [[*'.$str.']]', $this->get_mgr_url('template',$this->modx->resource->get('template')));
+			return $TV->get('id');
+		}
+        return $this->get_mgr_url('tv',$TV->get('id'));
+
 	}
 
 
@@ -128,7 +184,9 @@ class Bloodline {
 		$resource = $this->modx->getObject('modResource', $str);
 		if (!$resource) {
 			$this->error('Linked resource does not exist: [[~'.$str.']]');
+			return '';
 		}
+		return $resource->get('id');
 	}
 
 	//------------------------------------------------------------------------------
@@ -161,16 +219,33 @@ class Bloodline {
 	private function _validate_setting($str) {
 		
 		// This will get global settings and any hard-coded ones, e.g. site_url					
-		$Setting = $this->modx->getOption($str); 
+		$value = $this->modx->getOption($str);
+		
+		// Settings defined in the config.inc.php
+		if (in_array($str, array('site_url','assets_url','core_path','base_url','assets_path'))) {
+            return '';
+		}
 		//$Setting = $this->modx->getObject('modSystemSetting', array('name'=>$str));
-		if (!$Setting) {
-			$Setting = $this->modx->getObject('modContextSetting', array('name'=>$str));
-			if (!$Setting) {			
-				$Setting = $this->modx->getObject('modUserSetting', array('name'=>$str));
-				if (!$Setting) {
-					$this->error('Setting does not exist: [[++'.$str.']]');
-				}
-			}
+		if ($value !== null) {
+            $Setting = $this->modx->getObject('modSystemSetting', array('key'=>$str));
+            if (!$Setting) {
+                $key = $this->modx->context->get('key');
+    			$Setting = $this->modx->getObject('modContextSetting', array('key'=>$str,'context_key'=>$key));
+    			if (!$Setting) {			
+    				$Setting = $this->modx->getObject('modUserSetting', array('key'=>$str));
+    				if (!$Setting) {
+    					$this->error('Setting does not exist: [[++'.$str.']]');
+    					return '';
+    				}
+    				return $this->get_mgr_url('setting',$Setting->get('id'));
+    			}
+    			else {
+                    if ($value !== $Setting->get('value')) {
+                        $this->info('Setting '.$str.' is defined as a Context Setting.');
+                    }
+    			}
+            }
+			return $this->modx->context->get('id');
 		}
 	}
 	
@@ -188,6 +263,7 @@ class Bloodline {
 		if (!$Snippet) {
 			$this->error('Snippet does not exist: [['.$str.']]');
 		}
+		return $Snippet->get('id');
 	}
     
     //------------------------------------------------------------------------------
@@ -271,97 +347,6 @@ class Bloodline {
 		return $parts;
 	}
 
-
-	//------------------------------------------------------------------------------
-	/**
-	 * This looks at the first part of a tag to determine the type. Then it looks up
-	 * the info about this particular tag.
-	 *
-	 * See http://rtfm.modx.com/display/revolution20/Tag+Syntax
-	 *
-	 * @param string MODX $tag including square brackets, e.g. [[$chunk]]
-	 */
-	public function get_tag_info($tag) {
-		$info = array(
-            'raw' => '',
-            'cached' => '',
-            'type' => '',
-            'url',
-		);
-		$info['raw'] = str_replace(array('[',']'), array('&#91;','&#93;'),$tag);
-		
-		$tag = trim($tag,'[]');
-		$tag = trim($tag);
-							
-		// Strip the exclamation point 
-        $content = ltrim($tag,'!');
-        $info['cached'] = ($tag == $content)? true: false;
-
-        // The signature character
-		$first_char = substr($content, 0, 1);
-		
-		switch ($first_char) {
-			// Comment tag
-			case '-':
-			case '#':
-                $info['type'] = 'Comment'; 
-				return; // do nothing.
-				break;				
-			// Lexicon tag
-			case '%':
-                $info['type'] = 'Lexicon'; 
-				$content = substr($content, 1); // shift off first char
-				$parts = $this->atomize_tag($content);
-				$this->_validate_lexicon($parts['token']);
-				break;				
-			// Chunk
-			case '$':
-                $info['type'] = 'Chunk'; 
-				$content = substr($content, 1); // shift off first char
-				$parts = $this->atomize_tag($content);
-				$this->_validate_chunk($parts['token']);
-				break;
-			// Link
-			case '~':
-    			$info['type'] = 'Link'; 
-				$content = substr($content, 1); // shift off first char
-				$parts = $this->atomize_tag($content);
-				$this->_validate_link($parts['token']);
-				break;
-			// Doc var
-			case '*':
-			    $info['type'] = 'Document Variable'; 
-				$content = substr($content, 1); // shift off first char
-				$parts = $this->atomize_tag($content);
-				$this->_validate_docvar($parts['token']);
-				break;
-			// Placeholder or System Setting
-			case '+':
-				$content = substr($content, 1); // shift off first char
-				// ++ System Setting
-				if (substr($content, 0, 1) == '+') {
-				    $info['type'] = 'System Setting'; 
-					$content = substr($content, 1);
-					$parts = $this->atomize_tag($content);
-					$this->_validate_setting($parts['token']);
-				}
-				// Placeholder
-				else {
-				    $info['type'] = 'Placeholder'; 
-					$parts = $this->atomize_tag($content);
-					// we don't check the token, 'cuz who knows
-				}
-				break;
-			
-			// Snippet
-			default:
-    			$info['type'] = 'Snippet'; 
-				$parts = $this->atomize_tag($content);
-				$this->_validate_snippet($parts['token']);
-		}
-		
-		$this->report['tags'][] = $info;
-	}
 	    
     /**
      * Get the absolute manager url for editing an item.
@@ -385,20 +370,49 @@ class Bloodline {
             case 'tv':
                 $action = 'element/tv/update';
                 break;
+            case 'docvar':                
             case 'resource':
                 $action = 'resource/update';
                 break;
             case 'context':
                 $action = 'context/update';
+                break;
+            case 'setting':
+                $action = 'system/settings';
+                break;
+            case 'tv':
+                $action = 'element/tv/update';
+            default:
+                $action  = 'unknown action';
         }
         
         $id = (int) $id;
         $a = $this->modx->getOption($action, $this->controllers);
         if (!$a) {
-            $this->modx->log(xPDO::LOG_LEVEL_ERROR,'Bloodline: unknown controller/action for type '.$type);
+            $this->modx->log(xPDO::LOG_LEVEL_ERROR,'Bloodline: unknown controller/action ('.$action.') for type '.$type);
             return '';
         }
         return MODX_MANAGER_URL ."index.php?a={$a['id']}&id={$id}";
+    }
+
+    /**
+     * Get the full web url (including http) for drilling down into an item (this link feeds into 
+     * other Bloodline functionality -- it's not a link you'd ever use outside of this plugin).
+     * WARNING: this passes the $_GET array over to MODX without sanitizing it, so you are relying
+     * entirely on MODX to filter out nasties from the URL, e.g. imagine a URL parameter like:
+     * http://yoursite.com/page?BLOODLINE=1&xss=haha<script>alert('boned')</script>
+     * MODX does filter out script tags, but it's not recommended to rely on this.  Bloodline only
+     * operates when you are logged into the manager, so it's considered reasonably secure: if 
+     * you are already logged into the manager (legitimately or maliciously), why resort to XSS?
+     *
+     * @param string $type template,resource, snippet etc. corresponding to the type of thing
+     * @param integer $id of the object in question
+     * @return string absolute URL for drilling into the object referenced 
+     */
+    public function get_web_url($type, $id) {
+        $_GET['type'] = $type;
+        $_GET['id'] = (int) $id;
+        return $this->modx->makeUrl($this->modx->resource->get('id'),'',$_GET,'full');
     }
     
     /**
@@ -413,7 +427,7 @@ class Bloodline {
      */
     public function error($msg,$url='') {
         $this->report['errors'][] = array(
-            'msg' => $msg,
+            'msg' => $this->neutralize($msg),
             'url' => $url
         );
     }
@@ -423,10 +437,123 @@ class Bloodline {
             default:
                 return '<script type="text/javascript">'.
                 $this->_to_js()
-                .'</script>'
-                . $this->_to_html();
+                .'</script>
+                <pre>
+                '
+                . print_r($this->report,true)
+                . '</pre>';
+                //. $this->_to_html();
         }
     }
+
+	//------------------------------------------------------------------------------
+	/**
+	 * This looks at the first part of a tag to determine the type. Then it looks up
+	 * the info about this particular tag.
+	 *
+	 * See http://rtfm.modx.com/display/revolution20/Tag+Syntax
+	 *
+	 * @param string MODX $tag including square brackets, e.g. [[$chunk]]
+	 * @return string tag type: comment, lexicon, chunk, snippet, link, docvar, tv, placeholder
+	 */
+	public function get_tag_info($tag) {
+		$info = array(
+            'raw' => '',
+            'cached' => '',
+            'type' => '',
+            'id' => '',
+            'mgr_url' => '',
+            'web_url' => '',
+		);
+		$info['raw'] = $this->neutralize($tag);
+		
+		$tag = trim($tag,'[]');
+		$tag = trim($tag);
+							
+		// Strip the exclamation point 
+        $content = ltrim($tag,'!');
+        $info['cached'] = ($tag == $content)? 1: 0;
+
+        // The signature character
+		$first_char = substr($content, 0, 1);
+		
+		switch ($first_char) {
+			// Comment tag
+			case '-':
+			case '#':
+                $info['type'] = 'comment'; 
+				return; // do nothing.
+				break;				
+			// Lexicon tag
+			case '%':
+                $info['type'] = 'lexicon'; 
+				$content = substr($content, 1); // shift off first char
+				$parts = $this->atomize_tag($content);
+				$this->_validate_lexicon($parts['token']);
+				break;				
+			// Chunk
+			case '$':
+                $info['type'] = 'chunk'; 
+				$content = substr($content, 1); // shift off first char
+				$parts = $this->atomize_tag($content);
+				$info['id'] = $this->_validate_chunk($parts['token']);
+				break;
+			// Link
+			case '~':
+    			$info['type'] = 'link'; 
+				$content = substr($content, 1); // shift off first char
+				$parts = $this->atomize_tag($content);
+				$info['id'] = $this->_validate_link($parts['token']);
+				break;
+			// Doc var
+			case '*':
+    			$content = substr($content, 1); // shift off first char
+                if (in_array($content, $this->resource_fields)) {
+                    $info['type'] = 'docvar';
+                    $info['id'] = $this->modx->resource->get('id');
+			    }
+			    else {
+                    $info['type'] = 'tv';
+    				$parts = $this->atomize_tag($content);
+    				$info['id'] = $this->_validate_tv($parts['token']);
+			    }
+				
+				break;
+			// Placeholder or System Setting
+			case '+':
+				$content = substr($content, 1); // shift off first char
+				// ++ System Setting
+				if (substr($content, 0, 1) == '+') {
+				    $info['type'] = 'setting'; 
+					$content = substr($content, 1);
+					$parts = $this->atomize_tag($content);
+					$info['id'] = $this->_validate_setting($parts['token']);
+				}
+				// Placeholder
+				else {
+				    $info['type'] = 'placeholder'; 
+					$parts = $this->atomize_tag($content);
+					// we don't check the token, 'cuz who knows
+				}
+				break;
+			
+			// Snippet
+			default:
+    			$info['type'] = 'snippet'; 
+				$parts = $this->atomize_tag($content);
+				$info['id'] = $this->_validate_snippet($parts['token']);
+		}
+		
+		if ($info['id']) {
+            $info['mgr_url'] = $this->get_mgr_url($info['type'],$info['id']);
+            $info['web_url'] = $this->get_web_url($info['type'],$info['id']);
+		}
+		
+		$this->report['tags'][] = $info;
+		
+		return $info;
+	}
+
 
 	/**
 	 * From SyntaxChecker
@@ -445,7 +572,6 @@ class Bloodline {
 		$map = array();
 		
 		$strlen = strlen ($str);
-		
 		
 		// Find starting tags;
 		$offset = 0;
@@ -485,7 +611,7 @@ class Bloodline {
      */
     public function info($msg,$url='') {
         $this->report['info'][] = array(
-            'msg' => $msg,
+            'msg' => $this->neutralize($msg),
             'url' => $url
         );    
     }
@@ -566,13 +692,12 @@ class Bloodline {
 			    unset($map[$indices[$i]]); // <-- $next_index
 			    $depth--;
 			}
-
 			$this_index = $next_index;
 		}
-
-        //print_r($map); exit;
         
-        // 2nd Pass: We log some data
+        // 2nd Pass: We log tag data
+        $tag_type_map = array();
+        $close_tag_map = array();
 		$indices = array_keys($map);
 		$count = count($indices);
 		$this_index = $map[$indices[0]];
@@ -584,24 +709,48 @@ class Bloodline {
 				$full_tag_len = $tag_len + 2; // additional 2 characters for closing brackets
 				$tag = substr ($str , $indices[$i-1], $full_tag_len );
 
-                //$this->report['tags'][] = $tag;
-                $this->get_tag_info($tag);
-				//$this->check_tag_contents($tag, $field, $obj); // <-- the magic happens
-			
+                $info = $this->get_tag_info($tag); // adds to the tag stack
+                $tag_type_map[$indices[$i-1]] = $info;
+                $close_tag_map[$indices[$i]] = $info; // Places an index at the point where tag ends
 				// Update the map: check these ones off our list
-				unset($map[$indices[$i-1]]);
-				unset($map[$indices[$i]]);
-				
-				// blank out that tag with spaces.  This is a cheap trick so we can test nested tags.
-				//$whiteout = $this->_generate_whitespace($full_tag_len);
-				//$content = substr_replace($content, $whiteout , $indices[$i-1], $full_tag_len );
+				//unset($map[$indices[$i-1]]);
+				//unset($map[$indices[$i]]);
 			}
 			
 			$this_index = $next_index;
 		}
+		//print_r($tag_type_map); exit;
+        // Do the Markup.  We should only markup chunks,snippets
+        $str_len = strlen($str);
+        $out = '';
+        $indices = array_keys($tag_type_map);
+//        print '<pre>'.print_r($tag_type_map,true).'</pre>'; exit;
+        for($i=0;$i<$str_len;$i++) {
+            if (isset($map[$i]) && $map[$i] == 'tag_open') {
+                if (in_array($tag_type_map[$i]['type'], $this->markup_tags)) {
+                    $out .= 'BLOODLINE_START ('.$tag_type_map[$i]['type'].':'.$tag_type_map[$i]['id'].')';
+                }
+            }
+            $out .= $str[$i]; 
+            if (isset($map[$i-1]) && $map[$i-1] == 'tag_close') {
+                if (in_array($close_tag_map[$i-1]['type'], $this->markup_tags)) {
+                    $out .= ':BLOODLINE_END ('.$close_tag_map[$i-1]['type'].':'.$close_tag_map[$i-1]['id'].')';
+                }
+            }
+        }
         
 //        print_r($this->report['tags']); exit;
-        return $str;
+        return $out;
+    }
+    
+    /**
+     * Take a string and make it inert to the MODX parser so we can display it in error messages etc.
+     *
+     * @param string
+     * @return string
+     */
+    public function neutralize($str) {
+        return str_replace(array('[',']'), array('&#91;','&#93;'),$str);
     }
     
 	/**
@@ -633,6 +782,20 @@ class Bloodline {
 		}
 		return $out;
 	}    
-
-
+    /**
+     * Each info message should have a message (the obvious bit), 
+     * and an optional URL (usually in the mgr) where the user can click to edit
+     *
+     * This gets added onto the $report stack.
+     *
+     * @param string $msg
+     * @param string $url
+     * @return void
+     */
+    public function warn($msg,$url='') {
+        $this->report['warn'][] = array(
+            'msg' => $this->neutralize($msg),
+            'url' => $url
+        );    
+    }
 }
