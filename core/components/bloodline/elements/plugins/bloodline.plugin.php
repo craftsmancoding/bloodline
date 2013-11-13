@@ -44,11 +44,25 @@ if ($modx->event->name == 'OnLoadWebDocument') {
         return;
     }
 
-    // Override for dev work
+    // Override path for dev work
     $core_path = $modx->getOption('bloodline.core_path','', MODX_CORE_PATH);
     require_once($core_path.'components/bloodline/model/bloodline/bloodline.class.php');
     
     $Bloodline = new Bloodline($modx);
+    
+    // If a specific element is defined, we override everything
+    $id = $modx->getOption('id',$_GET);
+    $type = $modx->getOption('type',$_GET);
+    
+/*
+    // TODO: drill down
+    if ($id && $type) {
+        // Fake resource
+        $modx->resource = $modx->newObject('modResource');
+        $modx->resource->set('cacheable',false);
+        
+    }
+*/
     
     // This is necessary so our markup shows.
     $modx->resource->set('cacheable',false);
@@ -62,7 +76,7 @@ if ($modx->event->name == 'OnLoadWebDocument') {
         $Bloodline->info('Template '.$modx->resource->Template->get('name'). '('.$modx->resource->Template->get('id').')'
             ,$Bloodline->get_mgr_url('template', $modx->resource->Template->get('id')));
         $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). '('.$modx->resource->get('id').')'
-            ,$Bloodline->get_mgr_url('template', $modx->resource->Template->get('id')));
+            ,$Bloodline->get_mgr_url('resource', $modx->resource->Template->get('id')));
             
         if($Bloodline->verify('template','content',$modx->resource->Template)) {
             $content = $Bloodline->markup($modx->resource->Template->get('content'));
