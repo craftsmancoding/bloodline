@@ -31,7 +31,7 @@
 class Bloodline {
 
     public $modx;
-    public $props;
+    public $config;
     public $controllers = array(); // Reverse Action Map
 
     public $report = array(
@@ -44,7 +44,7 @@ class Bloodline {
     // Bloodline will insert markup for the these types of tags (see get_tag_info)
     // Options: comment, lexicon, chunk, snippet, link, docvar, tv, placeholder, setting
     public $markup_tags = array(
-        'chunk','snippet','docvar'
+        //'chunk','snippet','docvar','tv'
     );
     
 	// What [[*docvars]] are available by default?
@@ -63,12 +63,33 @@ class Bloodline {
      * @param object modx
      * @param array
      */
-    function __construct(&$modx, &$config = array()){
+    function __construct(&$modx, &$config = array('markup'=>array(),'format'=>'both')){
         $this->modx =& $modx;
-        $this->props =& $config;
+        $this->config =& $config;
         $this->controllers = $this->loadActionMap(); // reverse action map
     }
 
+    /**
+     * Close a bloodline tag, usually an HTML comment
+     *
+     * @param array $info
+     * @param string 
+     */
+    function _close_tag($info) {
+        return '<!--BLOODLINE_END::'.$info['type'].':'.$info['id'].'-->';
+    }
+
+    /**
+     * Open a bloodline tag, usually an HTML comment
+     *
+     * @param array $info
+     * @param string 
+     */
+    function _open_tag($info) {
+        return '<!--BLOODLINE_START::'.$info['type'].':'.$info['id'].'-->';
+    }
+    
+    
     /**
      * Take Bloodline report data and convert it to a nicely formatted HTML report
      * http://www.istockphoto.com/stock-illustration-19742371-oak-tree-silhouette-with-roots.php
@@ -77,13 +98,62 @@ class Bloodline {
     private function _to_html() {
         $out = '';
         
-        $props = array('bloodline.errors' => "BOOGEY MAN");
-        
+        $props = array(
+            'bloodline.info' => '',        
+            'bloodline.warnings' => '',        
+            'bloodline.errors' => '',
+            'bloodline.tags' => ''
+        );
+
         $tpl = file_get_contents(dirname(dirname(dirname(__FILE__))).'/elements/chunks/report.tpl');
+        $tag_tpl = file_get_contents(dirname(dirname(dirname(__FILE__))).'/elements/chunks/tag.tpl');
+        $log_tpl = file_get_contents(dirname(dirname(dirname(__FILE__))).'/elements/chunks/log.tpl');
+        
         $uniqid = uniqid();
+        foreach($this->report['info'] as $t) {
+            $t['type'] = 'Info';
+            $chunk = $this->modx->newObject('modChunk', array('name' => "{tmp}-{$uniqid}"));
+            $chunk->setCacheable(false);
+            $props['bloodline.info'] .= $chunk->process($t, $log_tpl);
+        }
+        foreach($this->report['warn'] as $t) {
+            $t['type'] = 'Warning';
+            $chunk = $this->modx->newObject('modChunk', array('name' => "{tmp}-{$uniqid}"));
+            $chunk->setCacheable(false);
+            $props['bloodline.warnings'] .= $chunk->process($t, $log_tpl);
+        }
+
+        
+        foreach($this->report['errors'] as $t) {
+            $t['type'] = 'Error';
+            $chunk = $this->modx->newObject('modChunk', array('name' => "{tmp}-{$uniqid}"));
+            $chunk->setCacheable(false);
+            $props['bloodline.errors'] .= $chunk->process($t, $log_tpl);
+        }
+
+        foreach($this->report['tags'] as $t) {
+            $chunk = $this->modx->newObject('modChunk', array('name' => "{tmp}-{$uniqid}"));
+            $chunk->setCacheable(false);
+            $props['bloodline.tags'] .= $chunk->process($t, $tag_tpl);
+        }
+        foreach($this->config['markup'] as $m) {
+            $props[$m.'.ischecked'] = ' checked="checked"';
+        }
+        $props[$this->config['format'].'.isselected'] = 'selected="selected"';
+        //print $this->modx->makeUrl($this->modx->resource->get('id'),'',$_GET,'full');; exit;
+        $props['action_url'] = $this->modx->makeUrl($this->modx->resource->get('id'),'',array('BLOODLINE' => 1),'full');
+//        $props['action_url'] = str_replace('&amp;', '&', $props['action_url']);
+/*
+        $props['persisting_values'] = '';
+        foreach ($_GET as $k => $v) {
+            $props['persisting_values'] = '<input type="hidden" name="'.$k.'" value="'.$v.'" />';
+        }
+*/
         $chunk = $this->modx->newObject('modChunk', array('name' => "{tmp}-{$uniqid}"));
         $chunk->setCacheable(false);
         $out = $chunk->process($props, $tpl);
+
+
         
         return $out;
         foreach ($this->report['info'] as $i) {
@@ -746,14 +816,14 @@ class Bloodline {
 //        print '<pre>'.print_r($tag_type_map,true).'</pre>'; exit;
         for($i=0;$i<$str_len;$i++) {
             if (isset($map[$i]) && $map[$i] == 'tag_open') {
-                if (in_array($tag_type_map[$i]['type'], $this->markup_tags)) {
-                    $out .= 'BLOODLINE_START ('.$tag_type_map[$i]['type'].':'.$tag_type_map[$i]['id'].')';
+                if (in_array($tag_type_map[$i]['type'], $this->config['markup'])) {
+                    $out .= $this->_open_tag($tag_type_map[$i]);
                 }
             }
             $out .= $str[$i]; 
             if (isset($map[$i-1]) && $map[$i-1] == 'tag_close') {
-                if (in_array($close_tag_map[$i-1]['type'], $this->markup_tags)) {
-                    $out .= ':BLOODLINE_END ('.$close_tag_map[$i-1]['type'].':'.$close_tag_map[$i-1]['id'].')';
+                if (in_array($close_tag_map[$i-1]['type'], $this->config['markup'])) {
+                    $out .= $this->_close_tag($close_tag_map[$i-1]);
                 }
             }
         }

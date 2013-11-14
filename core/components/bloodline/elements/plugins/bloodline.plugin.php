@@ -56,29 +56,26 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     $config['format'] = $modx->getOption('format',$_GET,'both'); // js|html|both
     
     $Bloodline = new Bloodline($modx,$config);
-    
-    
-/*
-    // TODO: drill down
-    if ($id && $type) {
-        // Fake resource
-        $modx->resource = $modx->newObject('modResource');
-        $modx->resource->set('cacheable',false);
-        
-    }
-*/
-    
+
     // This is necessary so our markup shows.
     $modx->resource->set('cacheable',false);
     
     
+
+    // Drill Down
+    if ($id && $type) {
+        // Fake resource
+        print 'TODO...'; exit;
+        $modx->resource = $modx->newObject('modResource');
+//        $modx->resource->set('content') = '';
+    }    
     // Most resources have a template set...
-    if ($modx->resource->Template) {
+    elseif ($modx->resource->Template) {
         $Bloodline->info('Context '.$modx->context->get('key'). '('.$modx->context->get('id').')'
             ,$Bloodline->get_mgr_url('context', $modx->context->get('id')));
         $Bloodline->info('Template '.$modx->resource->Template->get('name'). '('.$modx->resource->Template->get('id').')'
             ,$Bloodline->get_mgr_url('template', $modx->resource->Template->get('id')));
-        $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). '('.$modx->resource->get('id').')'
+        $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). ' ('.$modx->resource->get('id').')'
             ,$Bloodline->get_mgr_url('resource', $modx->resource->Template->get('id')));
         
         if($Bloodline->verify('resource','content',$modx->resource)) {
