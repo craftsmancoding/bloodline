@@ -76,6 +76,16 @@ class Bloodline {
      */
     private function _to_html() {
         $out = '';
+        
+        $props = array('bloodline.errors' => "BOOGEY MAN");
+        
+        $tpl = file_get_contents(dirname(dirname(dirname(__FILE__))).'/elements/chunks/report.tpl');
+        $uniqid = uniqid();
+        $chunk = $this->modx->newObject('modChunk', array('name' => "{tmp}-{$uniqid}"));
+        $chunk->setCacheable(false);
+        $out = $chunk->process($props, $tpl);
+        
+        return $out;
         foreach ($this->report['info'] as $i) {
             if (empty($i['url'])) {
                 $out .= sprintf('%s<br/>',$i['msg']);
@@ -95,28 +105,34 @@ class Bloodline {
      */
     private function _to_js(){
         return 'var Bloodline = '.json_encode($this->report).';
-        console.group("Page Info");
-        for(var i=0;i<Bloodline.info.length;i++){
-            var obj = Bloodline.info[i];
-            console.info(obj.msg + " " + obj.url);
-        }
-        console.groupEnd();
-        
-        for(var i=0;i<Bloodline.warn.length;i++){
-            var obj = Bloodline.warn[i];
-            console.warn(obj.msg + " " + obj.url);
-        }
-        
-        for(var i=0;i<Bloodline.errors.length;i++){
-            var obj = Bloodline.errors[i];
-            console.error(obj.msg + " " + obj.url);
-        }
-        
-        console.group("All Tags");
-        for(var i=0;i<Bloodline.errors.length;i++){
-            var obj = Bloodline.errors[i];
-            console.error(obj.msg + " " + obj.url);
-        }
+        console.group("Bloodline");
+            console.group("Page Info");
+            for(var i=0;i<Bloodline.info.length;i++){
+                var obj = Bloodline.info[i];
+                console.info(obj.msg + " " + obj.url);
+            }
+            console.groupEnd();
+            
+            console.group("Warnings");
+            for(var i=0;i<Bloodline.warn.length;i++){
+                var obj = Bloodline.warn[i];
+                console.warn(obj.msg + " " + obj.url);
+            }
+            console.groupEnd();
+            
+            console.group("Errors");        
+            for(var i=0;i<Bloodline.errors.length;i++){
+                var obj = Bloodline.errors[i];
+                console.error(obj.msg + " " + obj.url);
+            }
+            console.groupEnd();
+                    
+            console.group("All Tags");
+            for(var i=0;i<Bloodline.errors.length;i++){
+                var obj = Bloodline.errors[i];
+                console.error(obj.msg + " " + obj.url);
+            }
+            console.groupEnd();
         console.groupEnd();
         ';
 
@@ -433,6 +449,8 @@ class Bloodline {
     }
     
     public function get_report($content_type='text/html') {
+        return $this->_to_html();
+/*
         switch ($content_type) {
             default:
                 return '<script type="text/javascript">'.
@@ -444,6 +462,7 @@ class Bloodline {
                 . '</pre>';
                 //. $this->_to_html();
         }
+*/
     }
 
 	//------------------------------------------------------------------------------
