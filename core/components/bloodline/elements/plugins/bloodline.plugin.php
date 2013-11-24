@@ -40,7 +40,7 @@
 
 
 if ($modx->event->name == 'OnLoadWebDocument') {
-    if (!isset($_GET[$modx->getOption('bloodline.url_param')])) {
+    if (!isset($_GET['BLOODLINE'])) {
         return;
     }
 
@@ -98,8 +98,17 @@ if ($modx->event->name == 'OnLoadWebDocument') {
         $Bloodline->info('Context '.$modx->context->get('key'). '('.$modx->context->get('id').')'
             ,$Bloodline->get_mgr_url('context', $modx->context->get('id')));
         $Bloodline->info('No Template');
-        $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). '('.$modx->resource->get('id').')'
-            ,$Bloodline->get_mgr_url('template', $modx->resource->Template->get('id')));
+        $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). ' ('.$modx->resource->get('id').')'
+            ,$Bloodline->get_mgr_url('template', $modx->resource->get('id')));
+
+        if($Bloodline->verify('resource','content',$modx->resource)) {
+            $content = $Bloodline->markup($modx->resource->get('content'));
+            $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
+            //$content = $content . "\n".'<pre>'.print_r($Bloodline->report,true).'</pre>';
+            $modx->resource->set('content',$content);
+
+        }
+
         //$out = $modx->resource->process();   
         //$modx->resource->_content = $out;
     }

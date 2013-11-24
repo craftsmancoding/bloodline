@@ -754,7 +754,8 @@ class Bloodline {
         
     /**
      * Markup a given string $str with Bloodline markers.
-     * String must be verified, otherwise, our regexes will fail.
+     * String must be verified (equal numbers of opening [[ and closing tags ]] and 
+     * an even number of backticks), otherwise, our regexes will fail.
      * The challenge is always nested tags, e.g. [[~[[*id]]]] 
      * So when we find a tag start '[[', we must traverse through the string until we 
      * find its relevant closing tag.
@@ -765,6 +766,36 @@ class Bloodline {
 		$str = str_replace(array("\r","\r\n","\n","\t",chr(202),chr(173),chr(0xC2),chr(0xA0) ), ' ', $str);
         
         $map = $this->get_tag_map($str);
+        
+        $map_copy = $map;
+        
+
+        // Test... build catalog
+		$indices = array_keys($map);
+		$count = count($indices);
+		$this_index = $map[$indices[0]];
+		$catalog = array();
+		$depth = 0;
+		$start_positions = array();
+		for ( $i = 1; $i < $count; $i++ ) {
+//            $depth[$this_index] = 0;
+			$next_index = $map[$indices[$i]];
+            if ($this_index == 'tag_open') {
+                $start_positions[$depth] = $indices[$i-1];
+//                print 'Index: '.$indices[$i-1]; exit;
+                $depth++;
+            }
+			if ($this_index == 'tag_close') {
+                $depth--;
+				$catalog[$depth][] = $this->neutralize(substr($str , $start_positions[$depth], $indices[$i-1] + 2));
+//				print substr($str , $start_positions[$depth], $indices[$i] + 2); exit;
+			}
+			$this_index = $next_index;
+		}
+
+print_r($catalog); exit;
+
+
         
         // 1st Pass: We simplify our tag map so we skip nested tags.
 		$indices = array_keys($map);
