@@ -34,6 +34,8 @@ class Bloodline {
     public $config;
     public $controllers = array(); // Reverse Action Map
 
+    private $msg; // weaving... 
+    
     public $report = array(
         'info'=>array(),
         'warn'=>array(),
@@ -57,7 +59,9 @@ class Bloodline {
     	'show_in_tree','articles_container_settings','articles_container'
 	);    
     
-    
+//    public static $cache_opts = array();
+    const cache_dir = 'bloodline/tags/';
+//    constant $x = 'yasdf';
     /**
      *
      * @param object modx
@@ -67,6 +71,7 @@ class Bloodline {
         $this->modx =& $modx;
         $this->config =& $config;
         $this->controllers = $this->loadActionMap(); // reverse action map
+//        self::
     }
 
     /**
@@ -217,9 +222,12 @@ class Bloodline {
 	 * @return  int $id of chunk
 	 */
 	private function _validate_chunk($str) {
+        $this->msg = ''; // init
 		$chunk = $this->modx->getObject('modChunk', array('name'=>$str));
-		if (!$chunk) {			
-			$this->error('Chunk does not exist '.$str);
+		if (!$chunk) {
+            $this->msg = 'Chunk does not exist '.$str;
+			$this->error($this->msg);
+			return '';
 		}
 		return $chunk->get('id');
 	}
@@ -233,13 +241,14 @@ class Bloodline {
 	 * @param	string	$str 
 	 */
 	private function _validate_tv($str) {
-
-       $page_id = $this->modx->resource->get('id');
+        $this->msg = ''; // init
+        $page_id = $this->modx->resource->get('id');
    
         // Does this TV exist at all?
         $TV = $this->modx->getObject('modTemplateVar', array('name'=>$str));
 		if (!$TV) {
-			$this->error('Template variable [[*'.$str.']] does not exist.');
+		    $this->msg = 'Template variable [[*'.$str.']] does not exist.';
+			$this->error($this->msg);
 			return '';
 		}
 		
@@ -247,7 +256,8 @@ class Bloodline {
 		$TVT = $this->modx->getObject('modTemplateVarTemplate'
 			, array('templateid'=>$this->modx->resource->get('template'), 'tmplvarid'=> $TV->get('id') ));
 		if (!$TVT) {
-			$this->warn('TV not assigned to current template: [[*'.$str.']]', $this->get_mgr_url('template',$this->modx->resource->get('template')));
+		    $this->msg = 'TV not assigned to current template: [[*'.$str.']]';   
+			$this->warn($this->msg, $this->get_mgr_url('template',$this->modx->resource->get('template')));
 			return $TV->get('id');
 		}
         return $this->get_mgr_url('tv',$TV->get('id'));
@@ -264,12 +274,14 @@ class Bloodline {
 	 * @param	string	$str 
 	 */
 	private function _validate_link($str) {
+        $this->msg = ''; // init
 		if (empty($str)) {
 			return;
 		}
 		$resource = $this->modx->getObject('modResource', $str);
 		if (!$resource) {
-			$this->error('Linked resource does not exist: [[~'.$str.']]');
+            $this->msg = 'Linked resource does not exist: [[~'.$str.']]';
+			$this->error($this->msg);
 			return '';
 		}
 		return $resource->get('id');
@@ -283,7 +295,8 @@ class Bloodline {
 	 *
 	 * @param	string	$str 
 	 */
-	private function _validate_lexicon($str) {	
+	private function _validate_lexicon($str) {
+        $this->msg = ''; // init	
 		// TODO: how to check this?
 		//$lexicon = $this->modx->getObject('modLexiconEntry', array('name' => $str));
 		//if (!$lexicon) {
@@ -303,7 +316,7 @@ class Bloodline {
 	 * @param	string	$str
 	 */
 	private function _validate_setting($str) {
-		
+		$this->msg = ''; // init
 		// This will get global settings and any hard-coded ones, e.g. site_url					
 		$value = $this->modx->getOption($str);
 		
@@ -320,14 +333,16 @@ class Bloodline {
     			if (!$Setting) {			
     				$Setting = $this->modx->getObject('modUserSetting', array('key'=>$str));
     				if (!$Setting) {
-    					$this->error('Setting does not exist: [[++'.$str.']]');
+    				    $this->msg = 'Setting does not exist: [[++'.$str.']]';
+    					$this->error($this->msg);
     					return '';
     				}
     				return $this->get_mgr_url('setting',$Setting->get('id'));
     			}
     			else {
                     if ($value !== $Setting->get('value')) {
-                        $this->info('Setting '.$str.' is defined as a Context Setting.');
+                        $this->msg = 'Setting '.$str.' is defined as a Context Setting.';
+                        $this->info($this->msg);
                     }
     			}
             }
@@ -345,9 +360,11 @@ class Bloodline {
 	 * @param	string	$str
 	 */
 	private function _validate_snippet($str) {
+        $this->msg = ''; // init
 		$Snippet = $this->modx->getObject('modSnippet', array('name'=>$str));
 		if (!$Snippet) {
-			$this->error('Snippet does not exist: [['.$str.']]');
+            $this->msg = 'Snippet does not exist: [['.$str.']]';
+			$this->error($this->msg);
 		}
 		return $Snippet->get('id');
 	}
@@ -357,80 +374,23 @@ class Bloodline {
     //------------------------------------------------------------------------------
 
 	/**
-	 * Break down a tag into its component parts.
-	 *
-	 * array(
-	 *		[token]		=>
-	 *		[propset]	=>
-	 *		[filters]	=>
-	 *		[params]	=> 
-	 * )
+	 * Given the contents of a MODX tag, get the token: this is the primary 
+	 * identifier, e.g. in a Snippet, it is the Snippet name, in a link, it is the 
+	 * link id.
 	 *
 	 * @param	string contents of a tag without an !, e.g. "pagetitle" or "MySnippet? &arg=`one`"
-	 * @param	array
+	 * @param	string
 	 */
-	public function atomize_tag($tag) {
+	public function get_token($tag) {
 		$tag = trim($tag);
-		
-		$parts = array(
-			'token' => '',
-			'propset' => '',
-			'filters' => '',
-			'params' => ''
-		);
-		
-		// Get token
+
+        // Get token
 		preg_match('/^[^@?:&`]+/i', $tag, $matches);
 		if (!empty($matches)){
-			$parts['token'] = trim($matches[0]);
-			$tag = trim(preg_replace('/^'.$matches[0].'/', '', $tag));
+			return trim($matches[0]);
 		}
-		else {
-			// ERROR!! No Token!!
-			return;
-		}
-		
-		// Get Propset
-		$first_char = substr($tag, 0, 1);
-		if ($first_char == '@') {
-			$tag = substr($tag, 1); // shift off first char
-			preg_match('/^[^?:&`]+/i', $tag, $matches);
-			if (isset($matches[0])) {
-				$parts['propset'] = trim($matches[0]);
-				$this->_validate_propset($parts['propset']);
-				$tag = trim(preg_replace('/^'.$matches[0].'/', '', $tag));
-			}
-		}
-		
-		// Get Filters
-		$first_char = substr($tag, 0, 1);
-		if ($first_char == ':') {
-			$tag = substr($tag, 1); // shift off first char
-			preg_match('/^[^?&]+/i', $tag, $matches);
-			//print_r($matches);
-			if (isset($matches[0])) {
-				$parts['filters'] = trim($matches[0]);
-				$this->_validate_filters($parts['filters']);
-				$tag = trim(preg_replace('/^'.$matches[0].'/', '', $tag));
-			}
-		}
-		if (!$tag) {
-			return $parts;
-		}
-		// Get Params
-		$first_char = substr($tag, 0, 1);
-		if ($first_char == '?') {
-			$tag = substr($tag, 1); // shift off first char
-			$parts['params'] = trim($tag);			
-		}
-		else {
-			// ERROR!!! Missing Question Mark!!!
-			$this->error($parts['token']. ' Snippet call is missing a question mark');
-			$parts['params'] = $tag;
-		}
-		//$this->_validate_params($parts);
-		
-		return $parts;
+        $this->modx->log(xPDO::LOG_LEVEL_ERROR,'Bloodline: could not find valid token in tag '.$tag);
+        return '';
 	}
 
 	    
@@ -542,21 +502,39 @@ class Bloodline {
 	 *
 	 * See http://rtfm.modx.com/display/revolution20/Tag+Syntax
 	 *
+	 * Sample output:
+	 *
+     *   Array
+     *   (
+     *       [32] => tag_open
+     *       [35] => tag_open
+     *       [40] => tag_close
+     *       [58] => tag_close
+     *       [84] => tag_open
+     *       [92] => tag_close
+     *   )
+	 *
+	 *     Key = character position of the opening or closing tag.
+	 *
 	 * @param string MODX $tag including square brackets, e.g. [[$chunk]]
 	 * @return string tag type: comment, lexicon, chunk, snippet, link, docvar, tv, placeholder
 	 */
 	public function get_tag_info($tag) {
 		$info = array(
             'raw' => '',
+            'hash' => md5($tag), 
             'cached' => '',
             'type' => '',
             'id' => '',
+            'msg' => '', // redundant (repeat of errors, warnings, info)
             'mgr_url' => '',
             'web_url' => '',
 		);
+		
+		
 		$info['raw'] = $this->neutralize($tag);
 		
-		$tag = trim($tag,'[]');
+		$tag = trim($tag,'[]'); // trim the ends off
 		$tag = trim($tag);
 							
 		// Strip the exclamation point 
@@ -576,35 +554,38 @@ class Bloodline {
 			// Lexicon tag
 			case '%':
                 $info['type'] = 'lexicon'; 
-				$content = substr($content, 1); // shift off first char
-				$parts = $this->atomize_tag($content);
-				$this->_validate_lexicon($parts['token']);
+				$content = substr($content, 1); // shift off the %
+				$token = $this->get_token($content);
+				$this->_validate_lexicon($token);
 				break;				
 			// Chunk
 			case '$':
                 $info['type'] = 'chunk'; 
-				$content = substr($content, 1); // shift off first char
-				$parts = $this->atomize_tag($content);
-				$info['id'] = $this->_validate_chunk($parts['token']);
+				$content = substr($content, 1); // shift off the $
+				$token = $this->get_token($content);
+				$info['id'] = $this->_validate_chunk($token);
+				$info['msg'] = $this->msg;
 				break;
 			// Link
 			case '~':
     			$info['type'] = 'link'; 
-				$content = substr($content, 1); // shift off first char
-				$parts = $this->atomize_tag($content);
-				$info['id'] = $this->_validate_link($parts['token']);
+				$content = substr($content, 1); // shift off the ~
+				$token = $this->get_token($content);
+				$info['id'] = $this->_validate_link($token);
+				$info['msg'] = $this->msg;
 				break;
 			// Doc var
 			case '*':
-    			$content = substr($content, 1); // shift off first char
+    			$content = substr($content, 1); // shift off the *
                 if (in_array($content, $this->resource_fields)) {
                     $info['type'] = 'docvar';
                     $info['id'] = $this->modx->resource->get('id');
 			    }
 			    else {
                     $info['type'] = 'tv';
-    				$parts = $this->atomize_tag($content);
-    				$info['id'] = $this->_validate_tv($parts['token']);
+    				$token = $this->get_token($content);
+    				$info['id'] = $this->_validate_tv($token);
+    				$info['msg'] = $this->msg;
 			    }
 				
 				break;
@@ -615,13 +596,14 @@ class Bloodline {
 				if (substr($content, 0, 1) == '+') {
 				    $info['type'] = 'setting'; 
 					$content = substr($content, 1);
-					$parts = $this->atomize_tag($content);
-					$info['id'] = $this->_validate_setting($parts['token']);
+					$token = $this->get_token($content);
+					$info['id'] = $this->_validate_setting($token);
+					$info['msg'] = $this->msg;
 				}
 				// Placeholder
 				else {
 				    $info['type'] = 'placeholder'; 
-					$parts = $this->atomize_tag($content);
+					$token = $this->get_token($content);
 					// we don't check the token, 'cuz who knows
 				}
 				break;
@@ -629,16 +611,15 @@ class Bloodline {
 			// Snippet
 			default:
     			$info['type'] = 'snippet'; 
-				$parts = $this->atomize_tag($content);
-				$info['id'] = $this->_validate_snippet($parts['token']);
+				$token = $this->get_token($content);
+				$info['id'] = $this->_validate_snippet($token);
+				$info['msg'] = $this->msg;
 		}
 		
 		if ($info['id']) {
             $info['mgr_url'] = $this->get_mgr_url($info['type'],$info['id']);
             $info['web_url'] = $this->get_web_url($info['type'],$info['id']);
 		}
-		
-		$this->report['tags'][] = $info;
 		
 		return $info;
 	}
@@ -759,43 +740,46 @@ class Bloodline {
      * The challenge is always nested tags, e.g. [[~[[*id]]]] 
      * So when we find a tag start '[[', we must traverse through the string until we 
      * find its relevant closing tag.
+     *
+     * We can only place markup in the outter most depth, not inside nested tags.
+     *
+     * @param string $str the HTML that you want to add markup to.
      */
     public function markup($str) {    
         //$str = '[[MySnip? &chunk=`[[$dick]]`]]';
         // Gotta strip out those nasty "space-like" characters.
+        // I can't remember why these characters were problematic, but I think it was because 
+        // they throw off character counts (?)
 		$str = str_replace(array("\r","\r\n","\n","\t",chr(202),chr(173),chr(0xC2),chr(0xA0) ), ' ', $str);
         
         $map = $this->get_tag_map($str);
         
         $map_copy = $map;
         
-
-        // Test... build catalog
-		$indices = array_keys($map);
-		$count = count($indices);
-		$this_index = $map[$indices[0]];
-		$catalog = array();
-		$depth = 0;
-		$start_positions = array();
-		for ( $i = 1; $i < $count; $i++ ) {
-//            $depth[$this_index] = 0;
-			$next_index = $map[$indices[$i]];
-            if ($this_index == 'tag_open') {
-                $start_positions[$depth] = $indices[$i-1];
-//                print 'Index: '.$indices[$i-1]; exit;
+//print '<textarea rows="20" cols="60">'.print_r($map,true).'</textarea>'; exit;
+        // Matchup each opening tag to its ending tag.
+        // Then get grab the tag and get its info.
+        // The $catalog array contains keys (tag start position) => values (tag end position)
+        $cache = array(); // tmp save start positions.
+        $catalog = array();
+        $tags = array();
+        foreach ($map as $k => $v) {
+            if ($v == 'tag_open') {
                 $depth++;
+                $cache[$depth] = $k; // start position
             }
-			if ($this_index == 'tag_close') {
+            if ($v == 'tag_close') {
+                $catalog[$cache[$depth]] = $k;
+                $length = ($k + 2) - $cache[$depth]; // tag_close - tag_open
+                $tag = substr ($str , $cache[$depth], $length);
+                $info = $this->get_tag_info($tag); // get tag info
+                $info['depth'] = $depth;
+                $this->report['tags'][] = $info;
                 $depth--;
-				$catalog[$depth][] = $this->neutralize(substr($str , $start_positions[$depth], $indices[$i-1] + 2));
-//				print substr($str , $start_positions[$depth], $indices[$i] + 2); exit;
-			}
-			$this_index = $next_index;
-		}
+            }            
+        }
 
-print_r($catalog); exit;
-
-
+print '<textarea rows="20" cols="60">'.print_r($this->report,true).'</textarea>'; exit;
         
         // 1st Pass: We simplify our tag map so we skip nested tags.
 		$indices = array_keys($map);
@@ -830,6 +814,8 @@ print_r($catalog); exit;
 				$tag = substr ($str , $indices[$i-1], $full_tag_len );
 
                 $info = $this->get_tag_info($tag); // adds to the tag stack
+print '<textarea rows="20" cols="60">'.print_r($info,true).'</textarea>'; exit;
+                
                 $tag_type_map[$indices[$i-1]] = $info;
                 $close_tag_map[$indices[$i]] = $info; // Places an index at the point where tag ends
 				// Update the map: check these ones off our list
