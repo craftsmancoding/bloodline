@@ -27,9 +27,10 @@
     
     <h2 class="bloodline_h2">Tags</h2>
     <div class="bloodline_tags">
-        <ul>
+        <table>
+            
         [[+bloodline.tags]]        
-        </ul>
+        </table>
     </div>
     
     

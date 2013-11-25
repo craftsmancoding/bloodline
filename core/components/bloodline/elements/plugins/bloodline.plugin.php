@@ -52,6 +52,7 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     $config = array();
     $id = $modx->getOption('id',$_GET);
     $type = $modx->getOption('type',$_GET);
+    $hash = $modx->getOption('hash',$_GET);
     $config['markup'] = $modx->getOption('markup',$_GET,array());
     $config['format'] = $modx->getOption('format',$_GET,'both'); // js|html|both
     
@@ -63,11 +64,19 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     
 
     // Drill Down
-    if ($id && $type) {
+    if ($hash) {
         // Fake resource
-        print 'TODO...'; exit;
+        //print 'TODO...'; exit;
         $modx->resource = $modx->newObject('modResource');
-//        $modx->resource->set('content') = '';
+        $tag = $modx->cacheManager->get('tags/'.$hash, $Bloodline::$cache_opts); 
+        $modx->resource->set('content', $tag);
+        return $tag;
+        if($Bloodline->verify('resource','content',$modx->resource->get('content'))) {
+            $content = $Bloodline->markup($modx->resource->get('content'));
+            $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
+            //$content = $content . "\n".'<pre>'.print_r($Bloodline->report,true).'</pre>';
+            $modx->resource->Template->set('content',$content);
+        }        
     }    
     // Most resources have a template set...
     elseif ($modx->resource->Template) {
@@ -87,8 +96,8 @@ if ($modx->event->name == 'OnLoadWebDocument') {
             $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
             //$content = $content . "\n".'<pre>'.print_r($Bloodline->report,true).'</pre>';
             $modx->resource->Template->set('content',$content);
-
         }
+        
         //$template_content = $Bloodline->verify('modT$modx->resource->Template->get('content'));
         //$template_content = 'BARRRF';
         //$modx->resource->Template->set('content',$template_content);

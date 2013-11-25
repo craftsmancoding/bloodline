@@ -59,9 +59,9 @@ class Bloodline {
     	'show_in_tree','articles_container_settings','articles_container'
 	);    
     
-//    public static $cache_opts = array();
-    const cache_dir = 'bloodline/tags/';
-//    constant $x = 'yasdf';
+    public static $cache_opts = array();
+    const CACHE_DIR = 'bloodline';
+    
     /**
      *
      * @param object modx
@@ -71,7 +71,7 @@ class Bloodline {
         $this->modx =& $modx;
         $this->config =& $config;
         $this->controllers = $this->loadActionMap(); // reverse action map
-//        self::
+        self::$cache_opts = array(xPDO::OPT_CACHE_KEY => self::CACHE_DIR);
     }
 
     /**
@@ -774,12 +774,13 @@ class Bloodline {
                 $tag = substr ($str , $cache[$depth], $length);
                 $info = $this->get_tag_info($tag); // get tag info
                 $info['depth'] = $depth;
+                $this->modx->cacheManager->set('tags/'.$info['hash'], $tag, 0, self::$cache_opts);
                 $this->report['tags'][] = $info;
                 $depth--;
             }            
         }
 
-print '<textarea rows="20" cols="60">'.print_r($this->report,true).'</textarea>'; exit;
+//print '<textarea rows="20" cols="60">'.print_r($this->report,true).'</textarea>'; exit;
         
         // 1st Pass: We simplify our tag map so we skip nested tags.
 		$indices = array_keys($map);
@@ -799,33 +800,6 @@ print '<textarea rows="20" cols="60">'.print_r($this->report,true).'</textarea>'
 			$this_index = $next_index;
 		}
         
-        // 2nd Pass: We log tag data
-        $tag_type_map = array();
-        $close_tag_map = array();
-		$indices = array_keys($map);
-		$count = count($indices);
-		$this_index = $map[$indices[0]];
-		for ( $i = 1; $i < $count; $i++ ) {
-			$next_index = $map[$indices[$i]];
-			// Leave this in just in case
-			if ($this_index == 'tag_open' && $next_index == 'tag_close') {
-				$tag_len = $indices[$i] - $indices[$i-1];
-				$full_tag_len = $tag_len + 2; // additional 2 characters for closing brackets
-				$tag = substr ($str , $indices[$i-1], $full_tag_len );
-
-                $info = $this->get_tag_info($tag); // adds to the tag stack
-print '<textarea rows="20" cols="60">'.print_r($info,true).'</textarea>'; exit;
-                
-                $tag_type_map[$indices[$i-1]] = $info;
-                $close_tag_map[$indices[$i]] = $info; // Places an index at the point where tag ends
-				// Update the map: check these ones off our list
-				//unset($map[$indices[$i-1]]);
-				//unset($map[$indices[$i]]);
-			}
-			
-			$this_index = $next_index;
-		}
-		//print_r($tag_type_map); exit;
         // Do the Markup.  We should only markup chunks,snippets
         $str_len = strlen($str);
         $out = '';
