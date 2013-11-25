@@ -1,6 +1,8 @@
 <?php
 /**
- * Bloodline plugin for Bloodline extra
+ * Bloodline
+ *
+ * Plugin for MODX Revolution
  *
  * Copyright 2013 by Everett Griffiths <http://craftsmancoding.com>
  * Created on 11-11-2013
@@ -24,7 +26,8 @@
 /**
  * Description
  * -----------
- * A plugin to add verbose commenting to your output to help
+ * Adds verbose commenting to your output to help debug problems, profile speed issues, 
+ * and quickly find the component elements.
  *
  * Variables
  * ---------
@@ -34,13 +37,9 @@
  * @package bloodline
  **/
  
-// if has mgr context
-// and if URL param isset
-
-
-
 if ($modx->event->name == 'OnLoadWebDocument') {
-    if (!isset($_GET['BLOODLINE'])) {
+    // You must be logged into the manager for this to work
+    if (!isset($_GET['BLOODLINE']) || !isset($modx->user) || !$modx->user->hasSessionContext('mgr')) {
         return;
     }
 
@@ -65,42 +64,43 @@ if ($modx->event->name == 'OnLoadWebDocument') {
 
     // Drill Down
     if ($hash) {
-        // Fake resource
-        //print 'TODO...'; exit;
-        $modx->resource = $modx->newObject('modResource');
         $tag = $modx->cacheManager->get('tags/'.$hash, $Bloodline::$cache_opts); 
-        $modx->resource->set('content', $tag);
-        return $tag;
-        if($Bloodline->verify('resource','content',$modx->resource->get('content'))) {
-            $content = $Bloodline->markup($modx->resource->get('content'));
+        $ctx = ($modx->context->get('id'))? $modx->context->get('id'):'null';
+        $Bloodline->info('Context '.$modx->context->get('key'). ' ('.$ctx.')'
+            ,$Bloodline->get_mgr_url('context', $modx->context->get('id')));
+        $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). ' ('.$modx->resource->get('id').')'
+            ,$Bloodline->get_mgr_url('resource', $modx->resource->get('id')));
+        $Bloodline->info('Tag '.$Bloodline->neutralize($tag)
+            ,'');
+            
+        // Fake template for presentation
+        $modx->resource->Template = $modx->newObject('modTemplate');
+        $modx->resource->Template->set('content',$tag);
+
+        if($Bloodline->verify('resource','content',$modx->resource->Template)) {
+//            print $modx->resource->Template->get('content'); exit;
+            $content = $Bloodline->markup($modx->resource->Template->get('content'));
             $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
-            //$content = $content . "\n".'<pre>'.print_r($Bloodline->report,true).'</pre>';
             $modx->resource->Template->set('content',$content);
-        }        
-    }    
+        }
+    }
     // Most resources have a template set...
     elseif ($modx->resource->Template) {
-        $Bloodline->info('Context '.$modx->context->get('key'). '('.$modx->context->get('id').')'
+        $ctx = ($modx->context->get('id'))? $modx->context->get('id'):'null';
+        $Bloodline->info('Context '.$modx->context->get('key'). ' ('.$ctx.')'
             ,$Bloodline->get_mgr_url('context', $modx->context->get('id')));
-        $Bloodline->info('Template '.$modx->resource->Template->get('name'). '('.$modx->resource->Template->get('id').')'
+        $Bloodline->info('Template '.$modx->resource->Template->get('name'). ' ('.$modx->resource->Template->get('id').')'
             ,$Bloodline->get_mgr_url('template', $modx->resource->Template->get('id')));
         $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). ' ('.$modx->resource->get('id').')'
             ,$Bloodline->get_mgr_url('resource', $modx->resource->Template->get('id')));
         
-        if($Bloodline->verify('resource','content',$modx->resource)) {
-            $modx->resource->set('content', $Bloodline->markup($modx->resource->get('content')));
-        }
-            
         if($Bloodline->verify('template','content',$modx->resource->Template)) {
             $content = $Bloodline->markup($modx->resource->Template->get('content'));
             $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
             //$content = $content . "\n".'<pre>'.print_r($Bloodline->report,true).'</pre>';
             $modx->resource->Template->set('content',$content);
         }
-        
-        //$template_content = $Bloodline->verify('modT$modx->resource->Template->get('content'));
-        //$template_content = 'BARRRF';
-        //$modx->resource->Template->set('content',$template_content);
+        // TODO: print errors        
     }
     // No template: resource only.
     else {
@@ -115,14 +115,8 @@ if ($modx->event->name == 'OnLoadWebDocument') {
             $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
             //$content = $content . "\n".'<pre>'.print_r($Bloodline->report,true).'</pre>';
             $modx->resource->set('content',$content);
-
+            $modx->resource->_content = $content;
         }
-
-        //$out = $modx->resource->process();   
-        //$modx->resource->_content = $out;
+        // TODO: print errors
     }
-    
-    
-    
-    
 }
