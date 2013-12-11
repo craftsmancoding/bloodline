@@ -1,6 +1,8 @@
 <?php
 /**
- * Bloodline
+ * @name Bloodline
+ * @description Add ?BLOODLINE=1 to your URLs to trigger verbose info to help debug problems, profile speed issues, and quickly find page components.
+ * @Events OnLoadWebDocument
  *
  * Plugin for MODX Revolution
  *
@@ -24,10 +26,6 @@
  */
 
 /**
- * Description
- * -----------
- * Adds verbose commenting to your output to help debug problems, profile speed issues, 
- * and quickly find the component elements.
  *
  * Variables
  * ---------
@@ -43,80 +41,115 @@ if ($modx->event->name == 'OnLoadWebDocument') {
         return;
     }
 
+    set_time_limit(0);
+
     // Override path for dev work
     $core_path = $modx->getOption('bloodline.core_path','', MODX_CORE_PATH);
     require_once($core_path.'components/bloodline/model/bloodline/bloodline.class.php');
-
+    $valid = true;
+    $content = '';
+    
     // If a specific element is defined, we override everything
-    $config = array();
-    $id = $modx->getOption('id',$_GET);
-    $type = $modx->getOption('type',$_GET);
-    $hash = $modx->getOption('hash',$_GET);
-    $config['markup'] = $modx->getOption('markup',$_GET,array());
-    $config['format'] = $modx->getOption('format',$_GET,'both'); // js|html|both
+    $config             = array();
+    $obj_id             = (isset($_GET['obj_id']))? $_GET['obj_id']: null;
+    $field             = (isset($_GET['field']))? $_GET['field']: null;    
+    $type               = (isset($_GET['type']))? $_GET['type']: null;
+    $hash               = (isset($_GET['hash']))? $_GET['hash']: null;
+    $config['markup']   = (isset($_GET['markup']))? $_GET['markup']: array();
+    $config['format']   = (isset($_GET['format']))? $_GET['format']: 'both'; // js|html|both
     
     $Bloodline = new Bloodline($modx,$config);
 
-    // This is necessary so our markup shows.
-    $modx->resource->set('cacheable',false);
-    
-    
+    // Gather info...    
+    $ctx = ($modx->context->get('id'))? $modx->context->get('id'):'web';
+    $Bloodline->info('Context '.$modx->context->get('key'),MODX_MANAGER_URL ."index.php?a=5&id=0&key=$ctx");
+    if (isset($modx->resource->Template)) {
+        $Bloodline->info('Template '.$modx->resource->Template->get('name'). ' ('.$modx->resource->Template->get('id').')'
+            ,$Bloodline->get_mgr_url('template', $modx->resource->Template->get('id')));    
+    }
+    $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). ' ('.$modx->resource->get('id').')'
+        ,$Bloodline->get_mgr_url('resource', $modx->resource->get('id')));
 
-    // Drill Down
-    if ($hash) {
+    
+    if ($type) {
+        switch ($type) {
+            case 'tv':
+                $content = $modx->resource->getTVValue($field);
+                break;
+            case 'docvar':
+                $content = $modx->resource->get($field);
+                break;
+            case 'setting':
+                $t['map_url'] = '';
+                break;
+            case 'chunk':
+                $Chunk = $modx->getObject('modChunk',$obj_id);
+                $content = $Chunk->getContent();
+                break;
+            case 'snippet':   
+                break;
+            case 'placeholder':
+                break;
+            case 'link':
+                break;
+        }
+        // Fake template for presentation
+        $modx->resource = $modx->newObject('modResource');
+        $modx->resource->Template = $modx->newObject('modTemplate');
+        $modx->resource->Template->set('content',$content);
+        
+    }
+    // Drill Down uses a hash
+    elseif ($hash) {
         $tag = $modx->cacheManager->get('tags/'.$hash, $Bloodline::$cache_opts); 
-        $ctx = ($modx->context->get('id'))? $modx->context->get('id'):'null';
-        $Bloodline->info('Context '.$modx->context->get('key'). ' ('.$ctx.')'
-            ,$Bloodline->get_mgr_url('context', $modx->context->get('id')));
-        $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). ' ('.$modx->resource->get('id').')'
-            ,$Bloodline->get_mgr_url('resource', $modx->resource->get('id')));
-        $Bloodline->info('Tag '.$Bloodline->neutralize($tag)
-            ,'');
+        $Bloodline->info('Tag '.$Bloodline->neutralize($tag),'');
             
         // Fake template for presentation
         $modx->resource->Template = $modx->newObject('modTemplate');
         $modx->resource->Template->set('content',$tag);
-
-        if($Bloodline->verify('resource','content',$modx->resource->Template)) {
-//            print $modx->resource->Template->get('content'); exit;
-            $content = $Bloodline->markup($modx->resource->Template->get('content'));
-            $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
-            $modx->resource->Template->set('content',$content);
-        }
+        $content = $tag;
+        
     }
     // Most resources have a template set...
-    elseif ($modx->resource->Template) {
-        $ctx = ($modx->context->get('id'))? $modx->context->get('id'):'null';
-        $Bloodline->info('Context '.$modx->context->get('key'). ' ('.$ctx.')'
-            ,$Bloodline->get_mgr_url('context', $modx->context->get('id')));
-        $Bloodline->info('Template '.$modx->resource->Template->get('name'). ' ('.$modx->resource->Template->get('id').')'
-            ,$Bloodline->get_mgr_url('template', $modx->resource->Template->get('id')));
-        $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). ' ('.$modx->resource->get('id').')'
-            ,$Bloodline->get_mgr_url('resource', $modx->resource->Template->get('id')));
-        
-        if($Bloodline->verify('template','content',$modx->resource->Template)) {
-            $content = $Bloodline->markup($modx->resource->Template->get('content'));
-            $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
-            //$content = $content . "\n".'<pre>'.print_r($Bloodline->report,true).'</pre>';
-            $modx->resource->Template->set('content',$content);
-        }
-        // TODO: print errors        
+    elseif (isset($modx->resource->Template)) {
+        $content = $modx->resource->Template->get('content');
     }
     // No template: resource only.
     else {
-        $Bloodline->info('Context '.$modx->context->get('key'). '('.$modx->context->get('id').')'
-            ,$Bloodline->get_mgr_url('context', $modx->context->get('id')));
-        $Bloodline->info('No Template');
-        $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). ' ('.$modx->resource->get('id').')'
-            ,$Bloodline->get_mgr_url('template', $modx->resource->get('id')));
-
-        if($Bloodline->verify('resource','content',$modx->resource)) {
-            $content = $Bloodline->markup($modx->resource->get('content'));
-            $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
-            //$content = $content . "\n".'<pre>'.print_r($Bloodline->report,true).'</pre>';
-            $modx->resource->set('content',$content);
-            $modx->resource->_content = $content;
-        }
-        // TODO: print errors
+        $content = $modx->resource->get('content');
     }
+    
+    // TODO: if ($profile) { }
+    // set start time
+    $mtime = explode(" ", microtime());
+    $tstart = $mtime[1] + $mtime[0];
+
+    // This is necessary so our markup shows.
+    $modx->resource->set('cacheable',false);    
+    $tmp_content = $content; // we need a copy b/c the parser operates on a reference
+    $maxIterations= intval($modx->getOption('parser_max_iterations',10));
+    $modx->parser->processElementTags('', $tmp_content, false, false, '[[', ']]', array(), $maxIterations);
+
+    // how long did it take?
+    $mtime = explode(" ", microtime());
+    $tend = $mtime[1] + $mtime[0];
+
+    $totalTime = ($tend - $tstart);
+    $totalTime = sprintf("%2.4f s", $totalTime);
+    $Bloodline->info('Parse time: '.$totalTime);
+    
+    
+    $valid = $Bloodline->verify($content);
+    
+    //---------------
+    // Reporting
+    //---------------
+    if($valid) {
+        // Get the tag map etc.
+        $content = $Bloodline->markup($content);
+//print '<textarea rows="20" cols="60">'.print_r($Bloodline->report['tags'],true).'</textarea>'; exit;
+    }
+    
+    $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
+    $modx->resource->Template->set('content',$content);
 }

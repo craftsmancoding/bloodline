@@ -1,3 +1,3 @@
 <li>
-    <strong class="bloodline_[[+type]]">[[+type]]:</strong> [[+msg]] <a href="[[+url]]" target="new">(more)</a>
+    <strong class="bloodline_[[+type]]">[[+type]]:</strong> [[+msg]] <a href="[[+url]]" target="new">Edit</a>
 </li>

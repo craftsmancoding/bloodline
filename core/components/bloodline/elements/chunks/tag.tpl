@@ -1,7 +1,7 @@
 <tr class="bloodline_[[+type]]">
     <td>[[+depth]]</td>
-    <td>[[+type]]</td>
-    <td><code title="[[+raw]]">[[+raw]]</code></td>
-    <td><a href="[[~[[*id]]? &BLOODLINE=`1` &hash=`[[+hash]]`]]">Filter</a></td>
-    <td><a href="[[+mgr_url]]" class="" target="new">Edit</a></td>
+    <td><code title="[[+type]]: [[+raw]]">[[+raw_short]]</code></td>
+    <td>[[+map_url]]</td>
+    <td>[[+value_url]]</td>
+    <td><a href="[[++manager_url]]" style="[[+edit_style]]" target="new">Edit</a></td>
 </tr>
