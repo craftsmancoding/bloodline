@@ -198,9 +198,12 @@
         </div>
         
         
-        <!--h2 class="bloodline_h2">Markup</h2>
+        <h2 class="bloodline_h2">Markup</h2>
         <form id="bloodline_filter" action="[[+action_url]]" method="get">
             <input type="hidden" name="BLOODLINE" value="1" />
+            <input type="hidden" name="type" value="[[+type]]" />
+            <input type="hidden" name="field" value="[[+field]]" />
+            <input type="hidden" name="obj_id" value="[[+obj_id]]" />
             <label for="bloodline_format" class="bloodline_label">Report Format</label>
             <a href="http://craftsmancoding.com/" class="bloodline_info">?</a>
             <select id="bloodline_format" name="format">
@@ -227,7 +230,7 @@
                        </div>         
                
             </div>
-        </form-->
+        </form>
         
         <div id="bloodline_footer"><a href="http://craftsmancoding.com/">Craftsman Coding</a></div>
     </div>

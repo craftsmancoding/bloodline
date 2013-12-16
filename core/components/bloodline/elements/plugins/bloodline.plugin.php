@@ -51,12 +51,14 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     
     // If a specific element is defined, we override everything
     $config             = array();
-    $obj_id             = (isset($_GET['obj_id']))? $_GET['obj_id']: null;
-    $field             = (isset($_GET['field']))? $_GET['field']: null;    
-    $type               = (isset($_GET['type']))? $_GET['type']: null;
+    $config['obj_id']   = (isset($_GET['obj_id']))? $_GET['obj_id']: null;
+    $config['field']    = (isset($_GET['field']))? $_GET['field']: null;    
+    $config['type']     = (isset($_GET['type']))? $_GET['type']: null;
     $hash               = (isset($_GET['hash']))? $_GET['hash']: null;
+    $profile            = (isset($_GET['profile']))? $_GET['profile']: null;
     $config['markup']   = (isset($_GET['markup']))? $_GET['markup']: array();
     $config['format']   = (isset($_GET['format']))? $_GET['format']: 'both'; // js|html|both
+    $config['persist'] = array('BLOODLINE'=>1);
     
     $Bloodline = new Bloodline($modx,$config);
 
@@ -70,20 +72,23 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     $Bloodline->info('Resource '.$modx->resource->get('pagetitle'). ' ('.$modx->resource->get('id').')'
         ,$Bloodline->get_mgr_url('resource', $modx->resource->get('id')));
 
+    // Store this because $modx->resource may get overwritten...
+    $Bloodline->resource = $modx->resource;
     
-    if ($type) {
-        switch ($type) {
+    // Here's where we drill down: we can only map tags in a few places (mostly chunks)
+    if ($config['type']) {
+        switch ($config['type']) {
             case 'tv':
-                $content = $modx->resource->getTVValue($field);
+                $content = $modx->resource->getTVValue($config['field']);
                 break;
             case 'docvar':
-                $content = $modx->resource->get($field);
+                $content = $modx->resource->get($config['field']);
                 break;
             case 'setting':
                 $t['map_url'] = '';
                 break;
             case 'chunk':
-                $Chunk = $modx->getObject('modChunk',$obj_id);
+                $Chunk = $modx->getObject('modChunk',$config['obj_id']);
                 $content = $Chunk->getContent();
                 break;
             case 'snippet':   

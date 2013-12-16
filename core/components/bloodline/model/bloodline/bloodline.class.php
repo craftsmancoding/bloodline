@@ -33,7 +33,7 @@ class Bloodline {
     public $modx;
     public $config;
     public $controllers = array(); // Reverse Action Map
-
+    public $resource;
     private $msg; // weaving... 
     
     public $report = array(
@@ -43,10 +43,17 @@ class Bloodline {
         'tags'=> array() // raw MODX tags (1st layer of nesting only)
         
     );
-    // Bloodline will insert markup for the these types of tags (see get_tag_info)
-    // Options: comment, lexicon, chunk, snippet, link, docvar, tv, placeholder, setting
-    public $markup_tags = array(
-        //'chunk','snippet','docvar','tv'
+
+    // For markup
+    public $colors = array(
+        'lexicon' => '#FF7400', //orange
+        'chunk' => '#9BED00',
+        'link' => '#612580',
+        'docvar' => '#CE0071',
+        'tv' => '#E768AD',
+        'setting' => '#FF4540',
+        'placeholder' => '#FF7673',
+        'snippet' => '#FF0700',
     );
     
 	// What [[*docvars]] are available by default?
@@ -81,7 +88,7 @@ class Bloodline {
      * @param string 
      */
     function _close_tag($info) {
-        return '<!--BLOODLINE_END::'.$info['type'].':'.$info['id'].'-->';
+        return '</div><!--BLOODLINE_END::'.$info['type'].':'.$info['token'].':'.$info['obj_id'].'-->';
     }
 
     /**
@@ -91,7 +98,9 @@ class Bloodline {
      * @param string 
      */
     function _open_tag($info) {
-        return '<!--BLOODLINE_START::'.$info['type'].':'.$info['id'].'-->';
+        return '<!--BLOODLINE_START::'.$info['type'].':'.$info['token'].':'.$info['obj_id'].'-->
+            <div style="border:2px solid '.$this->colors[$info['type']].';" title="'.$info['type'].':'.$info['token'].':'.$info['obj_id'].'">
+        ';
     }
     
     
@@ -103,12 +112,12 @@ class Bloodline {
     private function _to_html() {
         $out = '';
         
-        $props = array(
-            'bloodline.info' => '',        
-            'bloodline.warnings' => '',        
-            'bloodline.errors' => '',
-            'bloodline.tags' => ''
-        );
+        $props = $this->config;
+        $props['bloodline.info'] = '';        
+        $props['bloodline.warnings'] = '';        
+        $props['bloodline.errors'] = '';
+        $props['bloodline.tags'] = '';
+        
 
         $tpl = file_get_contents(dirname(dirname(dirname(__FILE__))).'/elements/chunks/report.tpl');
         $tag_tpl = file_get_contents(dirname(dirname(dirname(__FILE__))).'/elements/chunks/tag.tpl');
@@ -136,11 +145,11 @@ class Bloodline {
             $props['bloodline.errors'] .= $chunk->process($t, $log_tpl);
         }
 
-        foreach($this->report['tags'] as $t) {
+        foreach($this->report['tags'] as $n => $t) {
 
             $chunk = $this->modx->newObject('modChunk', array('name' => "{tmp}-{$uniqid}"));
             $chunk->setCacheable(false);
-            $t['value_url'] = '<a href="'.$this->modx->makeUrl($this->modx->resource->id,'',
+            $t['value_url'] = '<a href="'.$this->modx->makeUrl($this->resource->get('id'),'',
                 array('BLOODLINE'=>1,'hash'=>$t['hash']),
                 'full').'">Value</a>';
             if (strlen($t['raw'])>50) {
@@ -150,20 +159,24 @@ class Bloodline {
                 $t['raw_short'] = $t['raw'];
             }
             
-            $args = array('BLOODLINE'=>1, 'type'=>$t['type']);
-
+            $args = array();
+            $args['BLOODLINE'] = 1;
+            $args['type'] = $t['type'];
+//print '<pre>';
+//print_r($t);
             switch ($t['type']) {
                 case 'tv':
                 case 'docvar':
                     $args['field'] = $t['token'];
-                    $t['map_url'] = '<a href="'.$this->modx->makeUrl($this->modx->resource->id,'',$args,'full').'">Map</a>';
+
+                    $t['map_url'] = '<a href="'.$this->modx->makeUrl($this->resource->get('id'),'',$args,'full').'">Map</a>';
                     break;
                 case 'setting':
                     $t['map_url'] = '';
                     break;
                 case 'chunk':
                     $args['obj_id'] = $t['obj_id'];
-                    $t['map_url'] = '<a href="'.$this->modx->makeUrl($this->modx->resource->id,'',$args,'full').'">Map</a>';
+                    $t['map_url'] = '<a href="'.$this->modx->makeUrl($this->resource->get('id'),'',$args,'full').'">Map</a>';
                     break;
                 case 'snippet':
                     $t['map_url'] = '';
@@ -175,15 +188,17 @@ class Bloodline {
                     $t['map_url'] = '';
                     break;
             }
-            
+
+            //$props['value_url'] = 'http://google.com/';
             $props['bloodline.tags'] .= $chunk->process($t, $tag_tpl);
         }
+//exit;
         foreach($this->config['markup'] as $m) {
             $props[$m.'.ischecked'] = ' checked="checked"';
         }
         $props[$this->config['format'].'.isselected'] = 'selected="selected"';
         //print $this->modx->makeUrl($this->modx->resource->get('id'),'',$_GET,'full');; exit;
-        $props['action_url'] = $this->modx->makeUrl($this->modx->resource->get('id'),'',array('BLOODLINE' => 1),'full');
+        $props['action_url'] = $this->modx->makeUrl($this->resource->get('id'),'','','full');
 
         $chunk = $this->modx->newObject('modChunk', array('name' => "{tmp}-{$uniqid}"));
         $chunk->setCacheable(false);
@@ -262,7 +277,10 @@ class Bloodline {
 	 */
 	private function _validate_tv($str) {
         $this->msg = ''; // init
-        $page_id = $this->modx->resource->get('id');
+        
+        if (empty($str) || substr($str,0,2) == '[[') {
+            return '';
+        }
    
         // Does this TV exist at all?
         $TV = $this->modx->getObject('modTemplateVar', array('name'=>$str));
@@ -274,10 +292,10 @@ class Bloodline {
 		
 		// Is this TV assigned to this Template?
 		$TVT = $this->modx->getObject('modTemplateVarTemplate'
-			, array('templateid'=>$this->modx->resource->get('template'), 'tmplvarid'=> $TV->get('id') ));
+			, array('templateid'=>$this->resource->get('template'), 'tmplvarid'=> $TV->get('id') ));
 		if (!$TVT) {
 		    $this->msg = 'TV not assigned to current template: [[*'.$str.']]';   
-			$this->warn($this->msg, $this->get_mgr_url('template',$this->modx->resource->get('template')));
+			$this->warn($this->msg, $this->get_mgr_url('template',$this->resource->get('template')));
 			return $TV->get('id');
 		}
         return $this->get_mgr_url('tv',$TV->get('id'));
@@ -459,8 +477,12 @@ class Bloodline {
     }
     
     public function get_report($content_type='text/html') {
-        return $this->_to_html();
+        return $this->_to_html()
+            .'<script type="text/javascript">'.
+                $this->_to_js()
+                .'</script>';
 /*
+        // TODO ?
         switch ($content_type) {
             default:
                 return '<script type="text/javascript">'.
@@ -528,7 +550,7 @@ class Bloodline {
 			case '-':
 			case '#':
                 $info['type'] = 'comment'; 
-				return; // do nothing.
+				return false; // do nothing.
 				break;				
 			// Lexicon tag
 			case '%':
@@ -559,7 +581,7 @@ class Bloodline {
     			$info['token'] = $this->get_token($content);
                 if (in_array($content, $this->resource_fields)) {
                     $info['type'] = 'docvar';
-                    $info['obj_id'] = $this->modx->resource->get('id');
+                    $info['obj_id'] = $this->resource->get('id');
 			    }
 			    else {
                     $info['type'] = 'tv';
@@ -753,8 +775,6 @@ class Bloodline {
         
         $map = $this->get_tag_map($str);
         
-        $map_copy = $map;
-        
 //print '<textarea rows="20" cols="60">'.print_r($map,true).'</textarea>'; exit;
         // Matchup each opening tag to its ending tag.
         // Then get grab the tag and get its info.
@@ -762,6 +782,7 @@ class Bloodline {
         $cache = array(); // tmp save start positions.
         $catalog = array();
         $tags = array();
+        $close_tag_map = array(); // copy of $this->report['tags'] but keyed off of the closing index
         foreach ($map as $k => $v) {
             if ($v == 'tag_open') {
                 $depth++;
@@ -772,14 +793,20 @@ class Bloodline {
                 $length = ($k + 2) - $cache[$depth]; // tag_close - tag_open
                 $tag = substr ($str , $cache[$depth], $length);
                 $info = $this->get_tag_info($tag); // get tag info
-                $info['depth'] = $depth;
-                $this->modx->cacheManager->set('tags/'.$info['hash'], $tag, 0, self::$cache_opts);
-                $this->report['tags'][] = $info;
+                if ($info) {
+                    $info['depth'] = $depth;
+                    $this->modx->cacheManager->set('tags/'.$info['hash'], $tag, 0, self::$cache_opts);
+                    $info['tag_open'] = $cache[$depth];
+                    $info['tag_close'] = $k + 2;
+                    $this->report['tags'][$cache[$depth]] = $info; // log the start index
+                    $close_tag_map[$k+2] = $info;
+                }
                 $depth--;
             }            
         }
-return $str;
-//print '<textarea rows="20" cols="60">'.print_r($this->report,true).'</textarea>'; exit;
+//return $str;
+//print '<textarea rows="20" cols="60">'.print_r($map,true).'</textarea>'; 
+//print '<textarea rows="20" cols="60">'.print_r($this->report['tags'],true).'</textarea>'; exit;
         
         // 1st Pass: We simplify our tag map so we skip nested tags.
 		$indices = array_keys($map);
@@ -799,27 +826,36 @@ return $str;
 			$this_index = $next_index;
 		}
         
-        // Do the Markup.  We should only markup chunks,snippets
-        $str_len = strlen($str);
-        $out = '';
-        $indices = array_keys($tag_type_map);
-//        print '<pre>'.print_r($tag_type_map,true).'</pre>'; exit;
-        for($i=0;$i<$str_len;$i++) {
-            if (isset($map[$i]) && $map[$i] == 'tag_open') {
-                if (in_array($tag_type_map[$i]['type'], $this->config['markup'])) {
-                    $out .= $this->_open_tag($tag_type_map[$i]);
-                }
+        $shifted_map = array();
+        foreach ($map as $k => $v) {
+            if ($v == 'tag_open') {
+                $shifted_map[$k] = $v;
             }
-            $out .= $str[$i]; 
-            if (isset($map[$i-1]) && $map[$i-1] == 'tag_close') {
-                if (in_array($close_tag_map[$i-1]['type'], $this->config['markup'])) {
-                    $out .= $this->_close_tag($close_tag_map[$i-1]);
-                }
+            if ($v == 'tag_close') {
+                $shifted_map[$k + 2] = $v;
             }
         }
         
-//        print_r($this->report['tags']); exit;
+        // Do the Markup. (character by character)
+        $map =  $shifted_map;
+        $str_len = strlen($str);
+        $indices = array_keys($map);
+        for($i=0;$i<$str_len;$i++) {
+            if (isset($map[$i]) && $map[$i] == 'tag_open') {
+                if (in_array($this->report['tags'][$i]['type'], $this->config['markup'])) {
+                    $out .= $this->_open_tag($this->report['tags'][$i]);
+                }
+            }
+            if (isset($map[$i]) && $map[$i] == 'tag_close') {
+                if (in_array($close_tag_map[$i]['type'], $this->config['markup'])) {
+                    $out .= $this->_close_tag($close_tag_map[$i]);
+                }
+            }
+            $out .= $str[$i]; 
+        }
+
         return $out;
+
     }
     
     /**
