@@ -186,6 +186,7 @@
                     <tr>
                         <th>Depth</th>
                         <th>Tag</th>
+                        <th>Time</th>
                         <th>&nbsp;</th>
                         <th>&nbsp;</th>
                         <th>&nbsp;</th>
@@ -216,14 +217,14 @@
             <h3 class="bloodline_h3">Tags <a href="http://craftsmancoding.com/" class="bloodline_info">?</a></h3>
             
             <div id="bloodline_markup_checkboxes">
-                <label for="bloodline_chunk_markup">Chunks</label> <input id="bloodline_chunk_markup" type="checkbox" name="markup[]" value="chunk" [[+chunk.ischecked]]/><br/>
+                <label for="bloodline_chunk_markup">Chunks <div style="height:10px; width:10px; background-color: [[+chunk.color]];">&nbsp;</div></label> <input id="bloodline_chunk_markup" type="checkbox" name="markup[]" value="chunk" [[+chunk.ischecked]]/><br/>
                 <label for="">Snippets</label> <input id="bloodline_chunk_markup" type="checkbox" name="markup[]" value="snippet" [[+snippet.ischecked]]/><br/>
-                <label for="bloodline_snippet_markup">Links</label> <input id="bloodline_snippet_markup" type="checkbox" name="markup[]" value="link" [[+link.ischecked]]/><br/>
-                <label for="bloodline_lexicon_markup">Lexicon</label> <input id="bloodline_lexicon_markup" type="checkbox" name="markup[]" value="lexicon" [[+lexicon.ischecked]]/><br/>
-                <label for="bloodline_docvar_markup">Docvars</label> <input id="bloodline_docvar_markup" type="checkbox" name="markup[]" value="docvar" [[+docvar.ischecked]]/><br/>
-                <label for="bloodline_tv_markup">TVs</label> <input id="bloodline_tv_markup" type="checkbox" name="markup[]" value="tv" [[+tv.ischecked]]/><br/>
-                <label for="bloodline_setting_markup">Settings</label> <input id="bloodline_setting_markup" type="checkbox" name="markup[]" value="setting" [[+setting.ischecked]]/><br/>
-                <label for="bloodline_placeholder_markup">Placeholders</label> <input id="bloodline_placeholder_markup" type="checkbox" name="markup[]" value="placeholder" [[+placeholder.ischecked]]/><br/>
+                <label for="bloodline_snippet_markup">Links <div style="height:10px; width:10px; background-color: [[+snippet.color]];">&nbsp;</div></label> <input id="bloodline_snippet_markup" type="checkbox" name="markup[]" value="link" [[+link.ischecked]]/><br/>
+                <label for="bloodline_lexicon_markup">Lexicon <div style="height:10px; width:10px; background-color: [[+lexicon.color]];">&nbsp;</div></label> <input id="bloodline_lexicon_markup" type="checkbox" name="markup[]" value="lexicon" [[+lexicon.ischecked]]/><br/>
+                <label for="bloodline_docvar_markup">Docvars <div style="height:10px; width:10px; background-color: [[+docvar.color]];">&nbsp;</div></label> <input id="bloodline_docvar_markup" type="checkbox" name="markup[]" value="docvar" [[+docvar.ischecked]]/><br/>
+                <label for="bloodline_tv_markup">TVs <div style="height:10px; width:10px; background-color: [[+tv.color]];">&nbsp;</div></label> <input id="bloodline_tv_markup" type="checkbox" name="markup[]" value="tv" [[+tv.ischecked]]/><br/>
+                <label for="bloodline_setting_markup">Settings <div style="height:10px; width:10px; background-color: [[+setting.color]];">&nbsp;</div></label> <input id="bloodline_setting_markup" type="checkbox" name="markup[]" value="setting" [[+setting.ischecked]]/><br/>
+                <label for="bloodline_placeholder_markup">Placeholders <div style="height:10px; width:10px; background-color: [[+placeholder.color]];">&nbsp;</div></label> <input id="bloodline_placeholder_markup" type="checkbox" name="markup[]" value="placeholder" [[+placeholder.ischecked]]/><br/>
                        <div class="btn-holder">
                             <input type="submit" value="Refresh" />
                             <a href="[[+action_url]]">Clear</a>

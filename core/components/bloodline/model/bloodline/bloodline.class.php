@@ -100,6 +100,7 @@ class Bloodline {
     function _open_tag($info) {
         return '<!--BLOODLINE_START::'.$info['type'].':'.$info['token'].':'.$info['obj_id'].'-->
             <div style="border:2px solid '.$this->colors[$info['type']].';" title="'.$info['type'].':'.$info['token'].':'.$info['obj_id'].'">
+            <span style="background-color: '.$this->colors[$info['type']].'; padding:3px;">'.$info['type'].':'.$info['token'].':'.$info['obj_id'].'</span>
         ';
     }
     
@@ -117,7 +118,9 @@ class Bloodline {
         $props['bloodline.warnings'] = '';        
         $props['bloodline.errors'] = '';
         $props['bloodline.tags'] = '';
-        
+        foreach($this->colors as $type => $color) {
+            $props[$type.'.color'] = $color;
+        }
 
         $tpl = file_get_contents(dirname(dirname(dirname(__FILE__))).'/elements/chunks/report.tpl');
         $tag_tpl = file_get_contents(dirname(dirname(dirname(__FILE__))).'/elements/chunks/tag.tpl');
@@ -164,6 +167,7 @@ class Bloodline {
             $args['type'] = $t['type'];
 //print '<pre>';
 //print_r($t);
+//exit;
             switch ($t['type']) {
                 case 'tv':
                 case 'docvar':
@@ -188,6 +192,30 @@ class Bloodline {
                     $t['map_url'] = '';
                     break;
             }
+
+            // set start time
+            $mtime = explode(" ", microtime());
+            $tstart = $mtime[1] + $mtime[0];
+
+//            $timing_chunk = $this->modx->newObject('modChunk', array('name' => "{tmp}-{$uniqid}"));
+//            $timing_chunk->setCacheable(false);
+//            $x = $timing_chunk->process(array(),$t['raw']);
+//            $tmp_content = $t['raw'];
+//            $maxIterations= intval($this->modx->getOption('parser_max_iterations',10));
+//            $this->modx->parser->processElementTags('', $tmp_content, false, false, '[[', ']]', array(), $maxIterations);
+//            print $tmp_content; exit;
+            //$x = $this->resource;
+            //$x->set('content', $t['raw']);                
+            //$x->set('cacheable',false);
+            //$x->process();
+  
+            
+            // how long did it take?
+            $mtime = explode(" ", microtime());
+            $tend = $mtime[1] + $mtime[0];
+                        
+            $t['parse_time'] = sprintf("%2.4f s", ($tend - $tstart));
+
 
             //$props['value_url'] = 'http://google.com/';
             $props['bloodline.tags'] .= $chunk->process($t, $tag_tpl);
