@@ -3,6 +3,28 @@
         position: relative;
         margin: 0px;
     }
+
+    .table {
+      width: 100%;
+    }
+    .table th,
+    .table td {
+      padding: 4px;
+      text-align: left;
+      border-top: 1px solid #dddddd;
+    }
+    .table th {
+      font-weight: bold;
+    }
+
+    .table thead {
+      background: #626262;
+      color: #fff;
+    }
+    .table thead th {
+      vertical-align: bottom;
+    }
+
     #bloodline_report a,
     input[type="submit"],
     #toggle-bloodline {
@@ -42,7 +64,7 @@
         border-bottom: 1px solid #ddd;
     }
     .bloodline-container {
-         width: 350px;
+         width: 450px;
          position: absolute;
          top: 0;
          right: 0;
@@ -57,7 +79,7 @@
         padding: 4px 4px 0px !important;
     }
     #bloodline_report {
-        width: 300px;
+        width: 400px;
         border: 1px solid #999;
         color: #5d5d5d;
         font-size: 12px;
@@ -181,7 +203,7 @@
         
         <h2 class="bloodline_h2">Tags</h2>
         <div class="bloodline_tags">
-            <table>
+            <table class="table">
                 <thead>
                     <tr>
                         <th>Depth</th>
@@ -217,14 +239,51 @@
             <h3 class="bloodline_h3">Tags <a href="http://craftsmancoding.com/" class="bloodline_info">?</a></h3>
             
             <div id="bloodline_markup_checkboxes">
-                <label for="bloodline_chunk_markup">Chunks <div style="height:10px; width:10px; background-color: [[+chunk.color]];">&nbsp;</div></label> <input id="bloodline_chunk_markup" type="checkbox" name="markup[]" value="chunk" [[+chunk.ischecked]]/><br/>
-                <label for="">Snippets</label> <input id="bloodline_chunk_markup" type="checkbox" name="markup[]" value="snippet" [[+snippet.ischecked]]/><br/>
-                <label for="bloodline_snippet_markup">Links <div style="height:10px; width:10px; background-color: [[+snippet.color]];">&nbsp;</div></label> <input id="bloodline_snippet_markup" type="checkbox" name="markup[]" value="link" [[+link.ischecked]]/><br/>
-                <label for="bloodline_lexicon_markup">Lexicon <div style="height:10px; width:10px; background-color: [[+lexicon.color]];">&nbsp;</div></label> <input id="bloodline_lexicon_markup" type="checkbox" name="markup[]" value="lexicon" [[+lexicon.ischecked]]/><br/>
-                <label for="bloodline_docvar_markup">Docvars <div style="height:10px; width:10px; background-color: [[+docvar.color]];">&nbsp;</div></label> <input id="bloodline_docvar_markup" type="checkbox" name="markup[]" value="docvar" [[+docvar.ischecked]]/><br/>
-                <label for="bloodline_tv_markup">TVs <div style="height:10px; width:10px; background-color: [[+tv.color]];">&nbsp;</div></label> <input id="bloodline_tv_markup" type="checkbox" name="markup[]" value="tv" [[+tv.ischecked]]/><br/>
-                <label for="bloodline_setting_markup">Settings <div style="height:10px; width:10px; background-color: [[+setting.color]];">&nbsp;</div></label> <input id="bloodline_setting_markup" type="checkbox" name="markup[]" value="setting" [[+setting.ischecked]]/><br/>
-                <label for="bloodline_placeholder_markup">Placeholders <div style="height:10px; width:10px; background-color: [[+placeholder.color]];">&nbsp;</div></label> <input id="bloodline_placeholder_markup" type="checkbox" name="markup[]" value="placeholder" [[+placeholder.ischecked]]/><br/>
+
+            <table>
+                <tbody>
+                    <tr>
+                        <td><input id="bloodline_chunk_markup" type="checkbox" name="markup[]" value="chunk" [[+chunk.ischecked]]/></td>
+                        <td><div style="height:10px; width:10px; background-color: [[+chunk.color]];">&nbsp;</div></td>
+                        <td><label for="bloodline_chunk_markup">Chunks</label></td>
+                    </tr>
+                    <tr>
+                        <td><input id="bloodline_snippet_markup" type="checkbox" name="markup[]" value="snippet" [[+snippet.ischecked]]/></td>
+                        <td><div style="height:10px; width:10px; background-color: [[+snippet.color]];">&nbsp;</div></td>
+                        <td><label for="bloodline_snippet_markup">Snippets</label></td>
+                    </tr>
+                    <tr>
+                        <td><input id="bloodline_snippet_markup" type="checkbox" name="markup[]" value="link" [[+link.ischecked]]/></td>
+                        <td><div style="height:10px; width:10px; background-color: [[+snippet.color]];">&nbsp;</div></td>
+                        <td><label for="bloodline_snippet_markup">Links</label></td>
+                    </tr>
+                    <tr>
+                        <td><input id="bloodline_lexicon_markup" type="checkbox" name="markup[]" value="lexicon" [[+lexicon.ischecked]]/></td>
+                        <td><div style="height:10px; width:10px; background-color: [[+lexicon.color]];">&nbsp;</div></td>
+                        <td><label for="bloodline_lexicon_markup">Lexicon</label></td>
+                    </tr>
+                    <tr>
+                        <td><input id="bloodline_docvar_markup" type="checkbox" name="markup[]" value="docvar" [[+docvar.ischecked]]/></td>
+                        <td><div style="height:10px; width:10px; background-color: [[+docvar.color]];">&nbsp;</div></td>
+                        <td><label for="bloodline_docvar_markup">Docvars</label></td>
+                    </tr>
+                    <tr>
+                        <td><input id="bloodline_tv_markup" type="checkbox" name="markup[]" value="tv" [[+tv.ischecked]]/></td>
+                        <td><div style="height:10px; width:10px; background-color: [[+tv.color]];">&nbsp;</div></td>
+                        <td><label for="bloodline_tv_markup">TVs</label></td>
+                    </tr>
+                     <tr>
+                        <td><input id="bloodline_setting_markup" type="checkbox" name="markup[]" value="setting" [[+setting.ischecked]]/></td>
+                        <td><div style="height:10px; width:10px; background-color: [[+setting.color]];">&nbsp;</div></td>
+                        <td><label for="bloodline_setting_markup">Settings</label></td>
+                    </tr>
+                    <tr>
+                        <td><input id="bloodline_placeholder_markup" type="checkbox" name="markup[]" value="placeholder" [[+placeholder.ischecked]]/></td>
+                        <td><div style="height:10px; width:10px; background-color: [[+placeholder.color]];">&nbsp;</div></td>
+                        <td><label for="bloodline_placeholder_markup">Placeholders</label></td>
+                    </tr>
+                </tbody>
+            </table>
                        <div class="btn-holder">
                             <input type="submit" value="Refresh" />
                             <a href="[[+action_url]]">Clear</a>
