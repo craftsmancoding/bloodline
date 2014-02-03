@@ -98,9 +98,31 @@ class Bloodline {
      * @param string 
      */
     function _open_tag($info) {
+        $identifier = $info['type'].':'.$info['token'].':'.$info['obj_id'];
+        
+        switch ($info['type']) {
+            case 'tv':
+            case 'docvar':
+                $identifier = '<a href="'.MODX_MANAGER_URL.'index.php?a=30&id='.$this->resource->get('id').'" style="" target="new">'.$identifier.'</a>';
+                break;
+            case 'setting':
+                $identifier = '<a href="'.MODX_MANAGER_URL.'index.php?a=70&key='.$info['obj_id'].'" style="" target="new">'.$identifier.'</a>';
+                break;
+            case 'chunk':
+                $identifier = '<a href="'.MODX_MANAGER_URL.'index.php?a=10&id='.$info['obj_id'].'" style="" target="new">'.$identifier.'</a>';
+                break;
+            case 'snippet':
+                $identifier = '<a href="'.MODX_MANAGER_URL.'index.php?a=16&id='.$info['obj_id'].'" style="" target="new">'.$identifier.'</a>';
+                break;
+            case 'placeholder':
+                break;
+            case 'link':
+                $identifier = '<a href="'.MODX_MANAGER_URL.'index.php?a=30&id='.$info['obj_id'].'" style="" target="new">'.$identifier.'</a>';
+                break;
+        }    
         return '<!--BLOODLINE_START::'.$info['type'].':'.$info['token'].':'.$info['obj_id'].'-->
             <div style="border:2px solid '.$this->colors[$info['type']].';" title="'.$info['type'].':'.$info['token'].':'.$info['obj_id'].'">
-            <span style="background-color: '.$this->colors[$info['type']].'; padding:3px;">'.$info['type'].':'.$info['token'].':'.$info['obj_id'].'</span>
+            <span style="background-color: '.$this->colors[$info['type']].'; padding:3px;">'.$identifier.'</span>
         ';
     }
     
@@ -133,13 +155,13 @@ class Bloodline {
             $chunk->setCacheable(false);
             $props['bloodline.info'] .= $chunk->process($t, $log_tpl);
         }
+        
         foreach($this->report['warn'] as $t) {
             $t['type'] = 'Warning';
             $chunk = $this->modx->newObject('modChunk', array('name' => "{tmp}-{$uniqid}"));
             $chunk->setCacheable(false);
             $props['bloodline.warnings'] .= $chunk->process($t, $log_tpl);
         }
-
         
         foreach($this->report['errors'] as $t) {
             $t['type'] = 'Error';
@@ -172,24 +194,28 @@ class Bloodline {
                 case 'tv':
                 case 'docvar':
                     $args['field'] = $t['token'];
-
                     $t['map_url'] = '<a href="'.$this->modx->makeUrl($this->resource->get('id'),'',$args,'full').'">Map</a>';
+                    $t['mgr_url'] = '<a href="'.MODX_MANAGER_URL.'index.php?a=30&id='.$this->resource->get('id').'" style="[[+edit_style]]" target="new">Edit</a>';
                     break;
                 case 'setting':
                     $t['map_url'] = '';
+                    $t['mgr_url'] = '<a href="'.MODX_MANAGER_URL.'index.php?a=70&key='.$t['obj_id'].'" style="[[+edit_style]]" target="new">Edit</a>';
                     break;
                 case 'chunk':
                     $args['obj_id'] = $t['obj_id'];
                     $t['map_url'] = '<a href="'.$this->modx->makeUrl($this->resource->get('id'),'',$args,'full').'">Map</a>';
+                    $t['mgr_url'] = '<a href="'.MODX_MANAGER_URL.'index.php?a=10&id='.$t['obj_id'].'" style="[[+edit_style]]" target="new">Edit</a>';
                     break;
                 case 'snippet':
                     $t['map_url'] = '';
+                    $t['mgr_url'] = '<a href="'.MODX_MANAGER_URL.'index.php?a=16&id='.$t['obj_id'].'" style="[[+edit_style]]" target="new">Edit</a>';
                     break;
                 case 'placeholder':
                     $t['map_url'] = '';
                     break;
                 case 'link':
                     $t['map_url'] = '';
+                    $t['mgr_url'] = '<a href="'.MODX_MANAGER_URL.'index.php?a=30&id='.$t['obj_id'].'" style="[[+edit_style]]" target="new">Edit</a>';
                     break;
             }
 
@@ -810,6 +836,7 @@ class Bloodline {
         $cache = array(); // tmp save start positions.
         $catalog = array();
         $tags = array();
+        $depth=0;
         $close_tag_map = array(); // copy of $this->report['tags'] but keyed off of the closing index
         foreach ($map as $k => $v) {
             if ($v == 'tag_open') {
@@ -868,6 +895,7 @@ class Bloodline {
         $map =  $shifted_map;
         $str_len = strlen($str);
         $indices = array_keys($map);
+        $out = '';
         for($i=0;$i<$str_len;$i++) {
             if (isset($map[$i]) && $map[$i] == 'tag_open') {
                 if (in_array($this->report['tags'][$i]['type'], $this->config['markup'])) {

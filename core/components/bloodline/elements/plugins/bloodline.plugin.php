@@ -2,7 +2,7 @@
 /**
  * @name Bloodline
  * @description Add ?BLOODLINE=1 to your URLs to trigger verbose info to help debug problems, profile speed issues, and quickly find page components.
- * @Events OnLoadWebDocument
+ * @PluginEvents OnLoadWebDocument
  *
  * Plugin for MODX Revolution
  *
@@ -34,8 +34,9 @@
  *
  * @package bloodline
  **/
- 
+
 if ($modx->event->name == 'OnLoadWebDocument') {
+
     // You must be logged into the manager for this to work
     if (!isset($_GET['BLOODLINE']) || !isset($modx->user) || !$modx->user->hasSessionContext('mgr')) {
         return;
@@ -45,10 +46,10 @@ if ($modx->event->name == 'OnLoadWebDocument') {
 
     // Override path for dev work
     $core_path = $modx->getOption('bloodline.core_path','', MODX_CORE_PATH);
-    require_once($core_path.'components/bloodline/model/bloodline/bloodline.class.php');
+    require_once $core_path.'components/bloodline/model/bloodline/bloodline.class.php';
     $valid = true;
     $content = '';
-    
+
     // If a specific element is defined, we override everything
     $config             = array();
     $config['obj_id']   = (isset($_GET['obj_id']))? $_GET['obj_id']: null;
@@ -152,7 +153,8 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     if($valid) {
         // Get the tag map etc.
         $content = $Bloodline->markup($content);
-//print '<textarea rows="20" cols="60">'.print_r($Bloodline->report['tags'],true).'</textarea>'; exit;
+        //print $content; exit;
+        //print '<textarea rows="20" cols="60">'.print_r($Bloodline->report['tags'],true).'</textarea>'; exit;
     }
     
     $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
