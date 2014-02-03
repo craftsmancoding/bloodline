@@ -187,9 +187,7 @@ class Bloodline {
             $args = array();
             $args['BLOODLINE'] = 1;
             $args['type'] = $t['type'];
-//print '<pre>';
-//print_r($t);
-//exit;
+
             switch ($t['type']) {
                 case 'tv':
                 case 'docvar':
@@ -218,40 +216,14 @@ class Bloodline {
                     $t['mgr_url'] = '<a href="'.MODX_MANAGER_URL.'index.php?a=30&id='.$t['obj_id'].'" style="[[+edit_style]]" target="new">Edit</a>';
                     break;
             }
-
-            // set start time
-            $mtime = explode(" ", microtime());
-            $tstart = $mtime[1] + $mtime[0];
-
-//            $timing_chunk = $this->modx->newObject('modChunk', array('name' => "{tmp}-{$uniqid}"));
-//            $timing_chunk->setCacheable(false);
-//            $x = $timing_chunk->process(array(),$t['raw']);
-//            $tmp_content = $t['raw'];
-//            $maxIterations= intval($this->modx->getOption('parser_max_iterations',10));
-//            $this->modx->parser->processElementTags('', $tmp_content, false, false, '[[', ']]', array(), $maxIterations);
-//            print $tmp_content; exit;
-            //$x = $this->resource;
-            //$x->set('content', $t['raw']);                
-            //$x->set('cacheable',false);
-            //$x->process();
-  
             
-            // how long did it take?
-            $mtime = explode(" ", microtime());
-            $tend = $mtime[1] + $mtime[0];
-                        
-            $t['parse_time'] = sprintf("%2.4f s", ($tend - $tstart));
-
-
-            //$props['value_url'] = 'http://google.com/';
             $props['bloodline.tags'] .= $chunk->process($t, $tag_tpl);
         }
-//exit;
+
         foreach($this->config['markup'] as $m) {
             $props[$m.'.ischecked'] = ' checked="checked"';
         }
         $props[$this->config['format'].'.isselected'] = 'selected="selected"';
-        //print $this->modx->makeUrl($this->modx->resource->get('id'),'',$_GET,'full');; exit;
         $props['action_url'] = $this->modx->makeUrl($this->resource->get('id'),'','','full');
 
         $chunk = $this->modx->newObject('modChunk', array('name' => "{tmp}-{$uniqid}"));
@@ -292,9 +264,9 @@ class Bloodline {
             console.groupEnd();
                     
             console.group("All Tags");
-            for(var i=0;i<Bloodline.errors.length;i++){
-                var obj = Bloodline.errors[i];
-                console.error(obj.msg + " " + obj.url);
+            for(var i=0;i<Bloodline.tags.length;i++){
+                var obj = Bloodline.tags[i];
+                console.log(obj.type + " " + obj.obj_id);
             }
             console.groupEnd();
         console.groupEnd();
@@ -530,7 +502,7 @@ class Bloodline {
         );
     }
     
-    public function get_report($content_type='text/html') {
+    public function get_report($content_type='text/html') { 
         return $this->_to_html()
             .'<script type="text/javascript">'.
                 $this->_to_js()

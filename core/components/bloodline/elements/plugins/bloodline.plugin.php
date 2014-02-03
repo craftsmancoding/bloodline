@@ -37,8 +37,9 @@
 
 if ($modx->event->name == 'OnLoadWebDocument') {
 
+    $action = (isset($_GET['BLOODLINE'])) ? strtolower($_GET['BLOODLINE']) : null;
     // You must be logged into the manager for this to work
-    if (!isset($_GET['BLOODLINE']) || !isset($modx->user) || !$modx->user->hasSessionContext('mgr')) {
+    if (!$action || !isset($modx->user) || !$modx->user->hasSessionContext('mgr')) {
         return;
     }
 
@@ -156,7 +157,23 @@ if ($modx->event->name == 'OnLoadWebDocument') {
         //print $content; exit;
         //print '<textarea rows="20" cols="60">'.print_r($Bloodline->report['tags'],true).'</textarea>'; exit;
     }
-    
-    $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
+    else {
+        print '<div style="margin:10px; padding:20px; border:1px solid red; background-color:pink; border-radius: 5px; width:500px;">
+		<span style="color:red; font-weight:bold;">Error</span><br />
+		<p>The following errors were detected:</p>'.$Bloodline->error.'</div>';
+    }
+    // Rude behavior prints the markup and exits.
+    if ($action=='rude') {
+        print $Bloodline->get_report($modx->resource->get('contentType')); 
+        exit;
+    }
+    elseif ($action =='raw') {
+        print '<pre>'.print_r($Bloodline->report,true).'</pre>';
+        exit;
+    }
+    else {
+        $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
+    }
+        
     $modx->resource->Template->set('content',$content);
 }

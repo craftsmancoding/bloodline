@@ -211,7 +211,6 @@
                     <tr>
                         <th>Depth</th>
                         <th>Tag</th>
-                        <th>Time</th>
                         <th>&nbsp;</th>
                         <th>&nbsp;</th>
                         <th>&nbsp;</th>
