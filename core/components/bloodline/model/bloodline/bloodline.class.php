@@ -269,7 +269,6 @@ class Bloodline {
         for(var key in Bloodline.tags) {
             var obj = Bloodline.tags[key];
             console.log("%s: %s (%s)",obj.type,obj.token,obj.obj_id);
-            
         } 
         console.groupEnd();
     console.groupEnd();

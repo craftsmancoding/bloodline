@@ -1,7 +1,6 @@
 
 Bloodline
 
-
 Author: Everett Griffiths <http://craftsmancoding.com>
 Copyright 2013
 
@@ -11,4 +10,4 @@ Bugs and Feature Requests: https://github.com:craftsmancoding/bloodline
 
 Questions: http://forums.modx.com
 
-Created by MyComponent
+This package was developed in part using Repoman.
