@@ -2,34 +2,34 @@
 @no_import
 -->
 <style>
-    body {
-        position: relative;
-        margin: 0px;
-    }
 
-    .table {
-      width: 100%;
+
+    .bloodline-table {
+        width: 100%;
+        color: #5d5d5d;
+        font-size: 12px;
+        font-family: sans-serif, arial;
     }
-    .table th,
-    .table td {
+    .bloodline-table th,
+    .bloodline-table td {
       padding: 4px;
       text-align: left;
       border-top: 1px solid #dddddd;
     }
-    .table th {
+    .bloodline-table th {
       font-weight: bold;
     }
 
-    .table thead {
+    .bloodline-table thead {
       background: #626262;
       color: #fff;
     }
-    .table thead th {
+    .bloodline-table thead th {
       vertical-align: bottom;
     }
 
     #bloodline_report a,
-    input[type="submit"],
+    input.bloodline-submit,
     #toggle-bloodline {
        display: inline-block;
        font-size: 12px;
@@ -50,7 +50,7 @@
         text-decoration: none;
     }
     #bloodline_report a:hover,
-    input[type="submit"]:hover,
+    input.bloodline-submit:hover,
     #toggle-bloodline:hover {
         background: #bfbfbf;
     }
@@ -90,12 +90,8 @@
         padding: 20px;
         background: #f7f7f7;
     }
-    table {
-        color: #5d5d5d;
-        font-size: 12px;
-        font-family: sans-serif, arial;
-    }
-    ul li a {
+
+    ul.bloodline-ul li a {
         color: #000 !important;
         background: none !important;
         border: none !important;
@@ -139,11 +135,11 @@
         width: 250px;
     }
 
-    .btn-holder {
+    .bloodline-btn-holder {
         margin-top: 10px;
     }
 
-    .line {
+    .bloodline-line {
         border-top: 3px solid #000;
         display: block;
         height: 2px;
@@ -171,12 +167,14 @@
     
 </script>
 
+<div class="bloodline-wrap">
+    
         
 <div class="bloodline-container">
     <a id="toggle-bloodline">
-        <div class="line">--</div>
-        <div class="line">--</div>
-        <div class="line">--</div>
+        <div class="bloodline-line">--</div>
+        <div class="bloodline-line">--</div>
+        <div class="bloodline-line">--</div>
     </a>
     <div id="bloodline_report">
 
@@ -185,28 +183,28 @@
             
         <h2 class="bloodline_h2 bloodline_info_header">Page Info</h2>
         <div class="bloodline_pageinfo">
-            <ul>
+            <ul class="bloodline-ul">
             [[+bloodline.info]]
             </ul>
         </div>
 
         <h2 class="bloodline_h2 bloodline_warning_header">Warnings</h2>
         <div class="bloodline_warnings">
-            <ul>
+            <ul class="bloodline-ul">
             [[+bloodline.warnings]]        
             </ul>
         </div>
 
         <h2 class="bloodline_h2 bloodline_error_header">Errors</h2>
         <div class="bloodline_errors">
-            <ul>
+            <ul class="bloodline-ul">
             [[+bloodline.errors]]
             </ul>
         </div>    
         
         <h2 class="bloodline_h2">Tags</h2>
         <div class="bloodline_tags">
-            <table class="table">
+            <table class="bloodline-table">
                 <thead>
                     <tr>
                         <th>Depth</th>
@@ -242,7 +240,7 @@
             
             <div id="bloodline_markup_checkboxes">
 
-            <table>
+            <table class="bloodline-table">
                 <tbody>
                     <tr>
                         <td><input id="bloodline_chunk_markup" type="checkbox" name="markup[]" value="chunk" [[+chunk.ischecked]]/></td>
@@ -286,8 +284,8 @@
                     </tr>
                 </tbody>
             </table>
-                       <div class="btn-holder">
-                            <input type="submit" value="Refresh" />
+                       <div class="bloodline-btn-holder">
+                            <input type="submit" class="bloodline-submit" value="Refresh" />
                             <a href="[[+action_url]]">Clear</a>
                        </div>         
                
@@ -296,4 +294,5 @@
         
         <div id="bloodline_footer"><a href="http://craftsmancoding.com/">Craftsman Coding</a></div>
     </div>
+</div>
 </div>
