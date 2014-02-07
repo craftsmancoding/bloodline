@@ -5,24 +5,24 @@
 
 
     .bloodline-table {
-        width: 100%;
-        color: #5d5d5d;
-        font-size: 12px;
-        font-family: sans-serif, arial;
+        width: 100% !important;
+        color: #5d5d5d !important;
+        font-size: 12px !important;
+        font-family: sans-serif, arial !important;
     }
     .bloodline-table th,
     .bloodline-table td {
-      padding: 4px;
-      text-align: left;
-      border-top: 1px solid #dddddd;
+      padding: 4px !important;
+      text-align: left !important;
+      border-top: 1px solid #dddddd !important;
     }
     .bloodline-table th {
-      font-weight: bold;
+      font-weight: bold !important;
     }
 
     .bloodline-table thead {
-      background: #626262;
-      color: #fff;
+      background: #626262 !important;
+      color: #fff !important;
     }
     .bloodline-table thead th {
       vertical-align: bottom;
@@ -31,64 +31,64 @@
     #bloodline_report a,
     input.bloodline-submit,
     #toggle-bloodline {
-       display: inline-block;
-       font-size: 12px;
-        padding: 1px 10px;
-        margin-bottom: 0;
-        font-weight: bold;
-        line-height: 1.428571429;
-        text-align: center;
-        white-space: nowrap;
-        vertical-align: middle;
-        cursor: pointer;
-        background-image: none;
-        border: 1px solid transparent;
-        border-radius: 4px;
-        color: #000;
-        background: #fff;
-        border-color: #ddd;
-        text-decoration: none;
+       display: inline-block !important;
+       font-size: 12px !important;
+        padding: 1px 10px !important;
+        margin-bottom: 0 !important;
+        font-weight: bold !important;
+        line-height: 1.428571429 !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+        cursor: pointer !important;
+        background-image: none !important;
+        border: 1px solid transparent !important;
+        border-radius: 4px !important;
+        color: #000 !important;
+        background: #fff !important;
+        border-color: #ddd !important;
+        text-decoration: none !important;
     }
     #bloodline_report a:hover,
     input.bloodline-submit:hover,
     #toggle-bloodline:hover {
-        background: #bfbfbf;
+        background: #bfbfbf !important;
     }
 
 
 
     #bloodline_report ul li {
-        margin-bottom: 5px;
+        margin-bottom: 5px !important;
     }
     .bloodline_h2,
     .bloodline_h3 {
-        padding-bottom: 10px;
-        margin-bottom: 10px;
-        border-bottom: 1px solid #ddd;
+        padding-bottom: 10px !important;
+        margin-bottom: 10px !important;
+        border-bottom: 1px solid #ddd !important;
     }
     .bloodline-container {
-         width: 450px;
-         position: absolute;
-         top: 0;
-         right: 0;
+         width: 450px !important;
+         position: absolute !important;
+         top: 0 !important;
+         right: 0 !important;
     }
 
     #toggle-bloodline {
-        position: absolute;
-        right: 15px;
-        top: 5px;
-        z-index: 1000;
-        text-indent: -9999px;
+        position: absolute !important;
+        right: 15px !important;
+        top: 5px !important;
+        z-index: 1000 !important;
+        text-indent: -9999px !important;
         padding: 4px 4px 0px !important;
     }
     #bloodline_report {
-        width: 400px;
-        border: 1px solid #999;
-        color: #5d5d5d;
-        font-size: 12px;
-        font-family: sans-serif, arial;
-        padding: 20px;
-        background: #f7f7f7;
+        width: 400px !important;
+        border: 1px solid #999 !important;
+        color: #5d5d5d !important;
+        font-size: 12px !important;
+        font-family: sans-serif, arial !important;
+        padding: 20px !important;
+        background: #f7f7f7 !important;
     }
 
     ul.bloodline-ul li a {
@@ -100,51 +100,51 @@
     .bloodline_pageinfo ul,
     .bloodline_warnings ul,
     .bloodline_errors ul {
-        padding-left: 0px;
+        padding-left: 0px !important;
     }
 
     .bloodline_pageinfo ul li,
     .bloodline_warnings ul li,
     .bloodline_errors ul li { 
-        list-style: none;
-        padding: 5px;
+        list-style: none !important;
+        padding: 5px !important;
     }
     
     .bloodline_pageinfo ul li { 
-        background: #d9edf7;
-        border: 1px solid #bce8f1;
-        color: #60708f;
+        background: #d9edf7 !important;
+        border: 1px solid #bce8f1 !important;
+        color: #60708f !important;
     }
 
     .bloodline_warnings ul li { 
-        background: #fcf8e3;
-        border: 1px solid #faebcc;
-        color: #8a6d6a;
+        background: #fcf8e3 !important;
+        border: 1px solid #faebcc !important;
+        color: #8a6d6a !important;
     }
     
     .bloodline_errors ul li { 
-        background: #f2dede;
-        border: 1px solid #ebccd1;
-        color: #a94442;
+        background: #f2dede !important;
+        border: 1px solid #ebccd1 !important;
+        color: #a94442 !important;
     }
 
 
     #bloodline_markup_checkboxes label {
-        float: right;
-        text-align: left;
-        width: 250px;
+        float: right !important;
+        text-align: left !important;
+        width: 250px !important;
     }
 
     .bloodline-btn-holder {
-        margin-top: 10px;
+        margin-top: 10px !important;
     }
 
     .bloodline-line {
-        border-top: 3px solid #000;
-        display: block;
-        height: 2px;
-        width: 20px;
-        margin-bottom: 1px;
+        border-top: 3px solid #000 !important;
+        display: block !important;
+        height: 2px !important;
+        width: 20px !important;
+        margin-bottom: 1px !important;
     }
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
