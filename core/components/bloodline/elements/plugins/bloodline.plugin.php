@@ -164,11 +164,12 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     }
     // Rude behavior prints the markup and exits.
     if ($action=='rude') {
-        print $Bloodline->get_report($modx->resource->get('contentType')); 
+        print $content . $Bloodline->get_report($modx->resource->get('contentType'));
         exit;
     }
     elseif ($action =='raw') {
-        print '<pre>'.print_r($Bloodline->report,true).'</pre>';
+        print '<pre>'.str_replace(array('[',']'), array('&#91;','&#93;'),print_r($Bloodline->report,true)).'</pre>';
+        print $Bloodline->to_js();
         exit;
     }
     else {

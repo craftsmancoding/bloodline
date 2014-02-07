@@ -132,7 +132,7 @@ class Bloodline {
      * http://www.istockphoto.com/stock-illustration-19742371-oak-tree-silhouette-with-roots.php
      * @return string
      */
-    private function _to_html() {
+    public function to_html() {
         $out = '';
         
         $props = $this->config;
@@ -239,37 +239,42 @@ class Bloodline {
      *
      * @return string (valid JS)
      */
-    private function _to_js(){
-        return 'var Bloodline = '.json_encode($this->report).';
-        console.group("Bloodline");
-            console.group("Page Info");
-            for(var i=0;i<Bloodline.info.length;i++){
-                var obj = Bloodline.info[i];
-                console.info(obj.msg + " " + obj.url);
-            }
-            console.groupEnd();
-            
-            console.group("Warnings");
-            for(var i=0;i<Bloodline.warn.length;i++){
-                var obj = Bloodline.warn[i];
-                console.warn(obj.msg + " " + obj.url);
-            }
-            console.groupEnd();
-            
-            console.group("Errors");        
-            for(var i=0;i<Bloodline.errors.length;i++){
-                var obj = Bloodline.errors[i];
-                console.error(obj.msg + " " + obj.url);
-            }
-            console.groupEnd();
-                    
-            console.group("All Tags");
-            for(var i=0;i<Bloodline.tags.length;i++){
-                var obj = Bloodline.tags[i];
-                console.log(obj.type + " " + obj.obj_id);
-            }
-            console.groupEnd();
+    public function to_js(){
+        return '
+<script type="text/javascript">
+    var Bloodline = '.json_encode($this->report).';
+    console.group("Bloodline");
+        console.group("Page Info");
+        for(var i=0;i<Bloodline.info.length;i++){
+            var obj = Bloodline.info[i];
+            console.info(obj.msg + " " + obj.url);
+        }
         console.groupEnd();
+        
+        console.group("Warnings");
+        for(var i=0;i<Bloodline.warn.length;i++){
+            var obj = Bloodline.warn[i];
+            console.warn(obj.msg + " " + obj.url);
+        }
+        console.groupEnd();
+        
+        console.group("Errors");        
+        for(var i=0;i<Bloodline.errors.length;i++){
+            var obj = Bloodline.errors[i];
+            console.error(obj.msg + " " + obj.url);
+        }
+        console.groupEnd();
+                
+        console.group("All Tags");
+        for(var key in Bloodline.tags) {
+            var obj = Bloodline.tags[key];
+            console.log("%s: %s (%s)",obj.type,obj.token,obj.obj_id);
+            
+        } 
+        console.groupEnd();
+    console.groupEnd();
+
+</script>
         ';
 
     }
@@ -503,22 +508,31 @@ class Bloodline {
     }
     
     public function get_report($content_type='text/html') { 
-        return $this->_to_html()
-            .'<script type="text/javascript">'.
-                $this->_to_js()
-                .'</script>';
+
+        if ($this->config['format'] == 'html') {
+            return $this->to_html();
+        }
+        elseif ($this->config['format'] == 'js') {
+            return $this->to_js();
+        }
+        else {
+            $out = $this->to_html();
+            $out .= $this->to_js();
+            return $out; 
+        }
+        
 /*
         // TODO ?
         switch ($content_type) {
             default:
                 return '<script type="text/javascript">'.
-                $this->_to_js()
+                $this->to_js()
                 .'</script>
                 <pre>
                 '
                 . print_r($this->report,true)
                 . '</pre>';
-                //. $this->_to_html();
+                //. $this->to_html();
         }
 */
     }
