@@ -154,17 +154,20 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     if($valid) {
         // Get the tag map etc.
         $content = $Bloodline->markup($content);
-        //print $content; exit;
-        //print '<textarea rows="20" cols="60">'.print_r($Bloodline->report['tags'],true).'</textarea>'; exit;
     }
     else {
         print '<div style="margin:10px; padding:20px; border:1px solid red; background-color:pink; border-radius: 5px; width:500px;">
 		<span style="color:red; font-weight:bold;">Error</span><br />
 		<p>The following errors were detected:</p>'.$Bloodline->error.'</div>';
     }
+    
     // Rude behavior prints the markup and exits.
     if ($action=='rude') {
         print $content . $Bloodline->get_report($modx->resource->get('contentType'));
+        exit;
+    }
+    elseif ($action == 'report') {
+        print $Bloodline->get_report($modx->resource->get('contentType'));
         exit;
     }
     elseif ($action =='raw') {
