@@ -71,6 +71,7 @@
          position: absolute !important;
          top: 0 !important;
          right: 0 !important;
+         z-index: 1000;
     }
 
     #toggle-bloodline {
