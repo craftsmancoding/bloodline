@@ -3,3 +3,7 @@ Changelog for Bloodline
 Bloodline 1.0.0
 ---------------------------------
 Initial Version
+
+1.0.1
+---------------------------------
+Minor fix to CSS
