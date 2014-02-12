@@ -7,3 +7,7 @@ Initial Version
 1.0.1
 ---------------------------------
 Minor fix to CSS
+
+1.0.2
+---------------------------------
+Fix for issue #3 where document variables with output filters were not properly recognized.

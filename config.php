@@ -8,7 +8,7 @@ return array(
     'package_name' => 'Bloodline',
     'namespace' => 'bloodline',
     'description' => "",
-    'version' => '1.0.1',
+    'version' => '1.0.2',
     'release' => 'pl',
     'author_name' => 'Everett Griffiths',
     'author_email' => 'everett@craftsmancoding.com',
