@@ -618,7 +618,7 @@ class Bloodline {
 			case '*':
     			$content = substr($content, 1); // shift off the *
     			$info['token'] = $this->get_token($content);
-                if (in_array($content, $this->resource_fields)) {
+                if (in_array($info['token'], $this->resource_fields)) {
                     $info['type'] = 'docvar';
                     $info['obj_id'] = $this->resource->get('id');
 			    }
