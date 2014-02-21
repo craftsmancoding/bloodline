@@ -26,7 +26,7 @@
     "autoload": {
         "classmap":["model/bloodline/"]
     },
-    "repoman": {
+    "extra": {
         "package_name": "Bloodline",
         "namespace": "bloodline",
         "version": "1.0.2",
