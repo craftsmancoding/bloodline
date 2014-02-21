@@ -1,0 +1,39 @@
+{
+    "name": "craftsmancoding/bloodline",
+    "description": "Bloodline is a debugging tool for MODX Revolution that lets you track a rendered page back to its component parts, trace-out any tag, and view information and errors on any page.",
+    "type": "library",
+    "keywords": ["modx","composer","repository","manager","autoload","git"],
+    "homepage": "https://github.com/craftsmancoding/repoman",
+    "license": "GPL2",
+    "authors": [
+        {
+            "name": "Everett Griffiths",
+            "email": "everett@craftsmancoding.com",
+            "homepage" : "https://github.com/craftsmancoding/bloodline"
+        }        
+    ],
+    "support": {
+        "email": "donotreply@craftsmancoding.org",
+        "issues": "https://github.com/craftsmancoding/bloodline/issues",
+        "forum": "http://forums.modx.com/",
+        "wiki": "https://github.com/craftsmancoding/bloodline/wiki",
+        "source": "https://github.com/craftsmancoding/bloodline"
+    },    
+    "require": {
+        "php": ">=5.3",
+        "michelf/php-markdown": "1.4.0"
+    },
+    "autoload": {
+        "classmap":["model/bloodline/"]
+    },
+    "repoman": {
+        "package_name": "Bloodline",
+        "namespace": "bloodline",
+        "version": "1.0.2",
+        "release": "pl",
+        "category":"Bloodline",
+        "core_path": "",
+        "assets_path" : "assets/",
+        "docs_path" : "docs/"
+    }
+}

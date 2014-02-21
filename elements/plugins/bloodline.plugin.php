@@ -46,8 +46,8 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     set_time_limit(0);
 
     // Override path for dev work
-    $core_path = $modx->getOption('bloodline.core_path','', MODX_CORE_PATH);
-    require_once $core_path.'components/bloodline/model/bloodline/bloodline.class.php';
+    $core_path = $modx->getOption('bloodline.core_path','', MODX_CORE_PATH.'components/bloodline/');
+    require_once $core_path.'model/bloodline/bloodline.class.php';
     $valid = true;
     $content = '';
 
