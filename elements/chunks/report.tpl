@@ -148,23 +148,11 @@
         margin-bottom: 1px !important;
     }
 </style>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
-<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+
 <script>
     //Pulse https://raw.github.com/jsoverson/jquery.pulse.js/master/jquery.pulse.min.js
     (function(t,n){"use strict";var e={pulses:1,interval:0,returnDelay:0,duration:500};t.fn.pulse=function(u,r,a){var i="destroy"===u;return"function"==typeof r&&(a=r,r={}),r=t.extend({},e,r),r.interval>=0||(r.interval=0),r.returnDelay>=0||(r.returnDelay=0),r.duration>=0||(r.duration=500),r.pulses>=-1||(r.pulses=1),"function"!=typeof a&&(a=function(){}),this.each(function(){function e(){return s.data("pulse").stop?void 0:r.pulses>-1&&++c>r.pulses?a.apply(s):(s.animate(u,{duration:r.duration/2,complete:function(){n.setTimeout(function(){s.animate(l,{duration:r.duration/2,complete:function(){n.setTimeout(e,r.interval)}})},r.returnDelay)}}),void 0)}var o,s=t(this),l={},p=s.data("pulse")||{};p.stop=i,s.data("pulse",p);for(o in u)u.hasOwnProperty(o)&&(l[o]=s.css(o));var c=0;e()})}})(jQuery,window,document);
 
-    $(function(){
-        $("#toggle-bloodline").click(function () {
-            var effect = 'slide';
-            var options = { direction: 'right' };
-            var duration = 700;
-            $('#bloodline_report').toggle(effect, options, duration);
-        });
-        // Heartbeat
-        $('.bloodline_h1').pulse({color : 'red'}, { pulses : 2 });
-
-    })
     
 </script>
 
@@ -172,11 +160,11 @@
     
         
 <div class="bloodline-container">
-    <a id="toggle-bloodline">
-        <div class="bloodline-line">--</div>
-        <div class="bloodline-line">--</div>
-        <div class="bloodline-line">--</div>
-    </a>
+<!--     <a id="toggle-bloodline">
+    <div class="bloodline-line">--</div>
+    <div class="bloodline-line">--</div>
+    <div class="bloodline-line">--</div>
+</a> -->
     <div id="bloodline_report">
 
         <h1 class="bloodline_h1">Bloodline</h1>
