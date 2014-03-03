@@ -20,8 +20,7 @@
         "source": "https://github.com/craftsmancoding/bloodline"
     },    
     "require": {
-        "php": ">=5.3",
-        "michelf/php-markdown": "1.4.0"
+        "php": ">=5.3"
     },
     "autoload": {
         "classmap":["model/bloodline/"]

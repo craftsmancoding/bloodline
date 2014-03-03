@@ -20,17 +20,3 @@
  *
  * @package bloodline
  */
-
-/**
- * Description
- * -----------
- * en default topic lexicon strings
- *
- * Variables
- * ---------
- * @var $modx modX
- * @var $scriptProperties array
- *
- * @package bloodline
- **/
-
