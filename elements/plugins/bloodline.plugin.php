@@ -33,7 +33,7 @@
  * @var $scriptProperties array
  *
  * @package bloodline
- **/
+ */
 
 if ($modx->event->name == 'OnLoadWebDocument') {
 
