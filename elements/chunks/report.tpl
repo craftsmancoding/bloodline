@@ -55,8 +55,6 @@
         background: #bfbfbf !important;
     }
 
-
-
     #bloodline_report ul li {
         margin-bottom: 5px !important;
     }
@@ -146,6 +144,9 @@
         height: 2px !important;
         width: 20px !important;
         margin-bottom: 1px !important;
+    }
+    #bloodline_footer a {
+        text-decoration: none;
     }
 </style>
 
