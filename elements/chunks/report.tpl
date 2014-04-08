@@ -217,7 +217,7 @@
             <input type="hidden" name="field" value="[[+field]]" />
             <input type="hidden" name="obj_id" value="[[+obj_id]]" />
             <label for="bloodline_format" class="bloodline_label">Report Format</label>
-            <a href="http://craftsmancoding.com/" class="bloodline_info">?</a>
+            <a href="https://github.com/craftsmancoding/bloodline/wiki/Report-Format" class="bloodline_info" target="_blank">?</a>
             <select id="bloodline_format" name="format">
                 <option value="html" [[+html.isselected]]>HTML</option>
                 <option value="js" [[+js.isselected]]>Javascript</option>
@@ -225,7 +225,7 @@
             </select>
             
             
-            <h3 class="bloodline_h3">Tags <a href="http://craftsmancoding.com/" class="bloodline_info">?</a></h3>
+            <h3 class="bloodline_h3">Add Markup <a href="https://github.com/craftsmancoding/bloodline/wiki/Markup" class="bloodline_info">?</a></h3>
             
             <div id="bloodline_markup_checkboxes">
 
