@@ -144,6 +144,30 @@
         width: 20px !important;
         margin-bottom: 1px !important;
     }
+
+    #bloodline_footer a {
+        border: none !important;
+        background: none !important;
+        padding: 0px !important;
+        color: #454545 !important;
+    }
+    #bloodline_footer a:hover {
+        background: none !important;
+        color: #000 !important;
+    }
+
+    .bl-close {
+        position: absolute;
+        top: 5px;
+        right: 15px;
+        text-decoration: none;
+        border: 1px solid #ddd;
+        background: #fff;
+        padding: 2px 8px;
+        font-family: arial;
+        color: #bf0707;
+    }
+
 </style>
 
 <script>
@@ -162,9 +186,10 @@
     <div class="bloodline-line">--</div>
     <div class="bloodline-line">--</div>
 </a> -->
+    <a class="bl-close" href="[[+action_url]]">X</a>
     <div id="bloodline_report">
-
-        <h1 class="bloodline_h1">Bloodline <a href="[[+action_url]]">Close</a></h1>
+        <br>
+        <h1 class="bloodline_h1">Bloodline</h1>
             
         <h2 class="bloodline_h2 bloodline_info_header">Page Info</h2>
         <div class="bloodline_pageinfo">
