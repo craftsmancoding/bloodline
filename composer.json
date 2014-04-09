@@ -28,7 +28,7 @@
     "extra": {
         "package_name": "Bloodline",
         "namespace": "bloodline",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "release": "pl",
         "category":"Bloodline",
         "core_path": "",

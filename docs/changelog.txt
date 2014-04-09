@@ -11,3 +11,8 @@ Minor fix to CSS
 1.0.2
 ---------------------------------
 Fix for issue #3 where document variables with output filters were not properly recognized.
+
+1.0.3
+---------------------------------
+Established workaround for resources using static templates.
+General cleanups to the report format.

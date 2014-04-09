@@ -22,6 +22,9 @@ Running Bloodline
 
 Bloodline will print a summary of all tags used in your page, including links to view the tag contents, drill-down into nested tags, and to edit relevant content in the MODX manager.
 
+Note that static templates pose a problem because the way they are rendered is slightly different.  A workaround
+for this scenario has been included in version 1.0.3, but the only guaranteed way to view the report is the 
+somewhat ungraceful "rude" report. View the rude report by appending "?BLOODLINE=rude" to the end of the URL.
 
 For more information, see the project homepage: https://github.com/craftsmancoding/bloodline
 
