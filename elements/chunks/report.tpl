@@ -14,7 +14,6 @@
     .bloodline-table td {
       padding: 4px !important;
       text-align: left !important;
-      border-top: 1px solid #dddddd !important;
     }
     .bloodline-table th {
       font-weight: bold !important;
@@ -145,9 +144,6 @@
         width: 20px !important;
         margin-bottom: 1px !important;
     }
-    #bloodline_footer a {
-        text-decoration: none;
-    }
 </style>
 
 <script>
@@ -276,7 +272,7 @@
             </table>
                        <div class="bloodline-btn-holder">
                             <input type="submit" class="bloodline-submit" value="Refresh" />
-                            <a href="[[+action_url]]">Clear</a>
+                            <a href="[[+action_url]]">Close</a>
                        </div>         
                
             </div>

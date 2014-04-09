@@ -43,8 +43,6 @@ if ($modx->event->name == 'OnLoadWebDocument') {
         return;
     }
 
-    set_time_limit(0);
-
     // Override path for dev work
     $core_path = $modx->getOption('bloodline.core_path','', MODX_CORE_PATH.'components/bloodline/');
     require_once $core_path.'model/bloodline/bloodline.class.php';
@@ -119,7 +117,14 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     }
     // Most resources have a template set...
     elseif (isset($modx->resource->Template)) {
-        $content = $modx->resource->Template->get('content');
+        // Static templates behave differently
+        if ($modx->resource->Template->get('static')) {
+            // We can't use getContent because it parses the tags before we've had a chance to look at them
+            $content = $modx->resource->Template->getFileContent();
+        }
+        else {
+            $content = $modx->resource->Template->get('content');            
+        }
     }
     // No template: resource only.
     else {
@@ -145,7 +150,7 @@ if ($modx->event->name == 'OnLoadWebDocument') {
     $totalTime = sprintf("%2.4f s", $totalTime);
     $Bloodline->info('Parse time: '.$totalTime);
     
-    
+
     $valid = $Bloodline->verify($content);
     
     //---------------
@@ -159,6 +164,7 @@ if ($modx->event->name == 'OnLoadWebDocument') {
         print '<div style="margin:10px; padding:20px; border:1px solid red; background-color:pink; border-radius: 5px; width:500px;">
 		<span style="color:red; font-weight:bold;">Error</span><br />
 		<p>The following errors were detected:</p>'.$Bloodline->error.'</div>';
+		die('Invalid!');
     }
     
     // Rude behavior prints the markup and exits.
@@ -175,9 +181,16 @@ if ($modx->event->name == 'OnLoadWebDocument') {
         print $Bloodline->to_js();
         exit;
     }
-    else {
-        $content = $content . $Bloodline->get_report($modx->resource->get('contentType'));
+    
+    $report = $Bloodline->get_report($modx->resource->get('contentType'));
+    
+    // See https://github.com/craftsmancoding/bloodline/issues/4
+    if ($modx->resource->Template->get('static')) {
+        $content = $modx->resource->get('content');
+        $modx->resource->set('content', $content.$report); 
     }
-        
-    $modx->resource->Template->set('content',$content);
+    else {          
+        $modx->resource->Template->setContent($content.$report);
+    }
+    
 }
