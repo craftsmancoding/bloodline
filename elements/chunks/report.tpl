@@ -207,7 +207,7 @@
         </div>
         
         
-        <h2 class="bloodline_h2">Markup</h2>
+        <h2 class="bloodline_h2">Add Markup <a href="https://github.com/craftsmancoding/bloodline/wiki/Markup" class="bloodline_info">?</a></h2>
         <form id="bloodline_filter" action="[[+action_url]]" method="get">
             <input type="hidden" name="BLOODLINE" value="1" />
             <input type="hidden" name="type" value="[[+type]]" />
@@ -222,7 +222,6 @@
             </select>
             
             
-            <h3 class="bloodline_h3">Add Markup <a href="https://github.com/craftsmancoding/bloodline/wiki/Markup" class="bloodline_info">?</a></h3>
             
             <div id="bloodline_markup_checkboxes">
 
