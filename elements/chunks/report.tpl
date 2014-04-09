@@ -164,8 +164,7 @@
 </a> -->
     <div id="bloodline_report">
 
-        <h1 class="bloodline_h1">Bloodline</h1>
-            <p>&copy; 2013 <a href="http://craftsmancoding.com/">Craftsman Coding</a></p>
+        <h1 class="bloodline_h1">Bloodline <a href="[[+action_url]]">Close</a></h1>
             
         <h2 class="bloodline_h2 bloodline_info_header">Page Info</h2>
         <div class="bloodline_pageinfo">
@@ -271,13 +270,12 @@
             </table>
                        <div class="bloodline-btn-holder">
                             <input type="submit" class="bloodline-submit" value="Refresh" />
-                            <a href="[[+action_url]]">Close</a>
                        </div>         
                
             </div>
         </form>
         
-        <div id="bloodline_footer"><a href="http://craftsmancoding.com/">Craftsman Coding</a></div>
+        <div id="bloodline_footer"><a href="http://craftsmancoding.com/">&copy; 2013  Craftsman Coding</a></div>
     </div>
 </div>
 </div>
