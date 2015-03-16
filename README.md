@@ -3,7 +3,7 @@ Bloodline
 
 Bloodline is a debugging tool for MODX Revolution that lets you track a rendered page back to its component parts, trace-out any tag, and view information and errors on any page.  
 
-[![Bloodline Demo Screencast](https://raw2.github.com/craftsmancoding/bloodline/master/screenshots/bloodline-video.jpg)](https://www.youtube.com/watch?v=x71i5S6zAbQ&feature=youtu.be)
+[![Bloodline Demo Screencast](https://raw.githubusercontent.com/craftsmancoding/bloodline/master/screenshots/bloodline-video.jpg)](https://www.youtube.com/watch?v=x71i5S6zAbQ&feature=youtu.be)
 
 To run Bloodline, 
 
